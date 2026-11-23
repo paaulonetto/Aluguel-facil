@@ -1,0 +1,5 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#182c46"><title>AlugaFácil · Gestão de aluguéis</title><link rel="stylesheet" href="style.css">
+<body><aside><a class="brand" href="#Painel"><b>⌂</b> Aluga<span>Fácil</span></a><small>ÁREA DO LOCADOR</small><nav id="nav"></nav><footer><label>Carteira ativa<select id="wallet"><option value="demo">Demonstração</option><option value="real">Minha carteira local</option><option value="cloud">Carteira online (Supabase)</option></select></label></footer></aside>
+<main><header><span>Minha gestão &nbsp; / &nbsp; <strong id="crumb">Painel</strong></span><button id="switch" class="plain">Carteira ▾</button></header><section id="view"></section></main>
+<dialog><form id="form"><div class="row"><h2 id="formTitle"></h2><button type="button" id="close" aria-label="Fechar">×</button></div><div id="fields"></div><p id="error" role="alert"></p><button class="primary">Salvar</button></form></dialog><div id="toast" role="status"></div><script type="module" src="app.js"></script></body></html>
