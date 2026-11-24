@@ -60,7 +60,7 @@ const paths=['M3 11l9-8 9 8v10H4V11 M9 21v-7h6v7','M4 21V4h12v17 M16 10h4v11 M7 
 const icon=i=>'<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="'+paths[i]+'"/></svg>';
 const enc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>(v/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}),date=v=>v.split('-').reverse().join('/'),monthName=m=>new Date(m+'-15T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
-let wallet=localStorage.getItem('af.wallet')==='real'?'real':'demo',db,raw,page,month=current(),filter='Todas',action;
+let wallet=localStorage.getItem('af.wallet')==='real'?'real':'demo',db,raw,page,month=current(),filter='Todas',action,entry='landing';
 const key=()=>'af.v1.'+wallet;
 let tenantId='', onlineName='', tenants=[], busy=false;
 function read(){if(wallet==='cloud')return;raw=localStorage.getItem(key());db=raw?JSON.parse(raw):wallet==='demo'?demo():blank();$('#wallet').value=wallet}
@@ -81,7 +81,13 @@ function chargeRows(list,actions=false){return list.map(c=>{
 const phone=c.person.phone.replace(/\D/g,''),url='https://wa.me/'+(phone.length<=11?'55':'')+phone+'?text='+encodeURIComponent('Olá, '+c.person.name+'! O aluguel de '+c.property.name+', no valor de '+money(c.amount)+', tem vencimento em '+date(c.due)+'.');
 return item(c.property.name,c.person.name+' · '+date(c.due),money(c.amount)+' '+badge(c.status),actions&&!c.paid?'<div class="actions">'+btn('pay|'+c.key,'Registrar pagamento')+(phone?'<a class="button" target="_blank" rel="noopener" href="'+enc(url)+'">WhatsApp</a>':'')+'</div>':c.paid?'Recebido em '+date(c.paid.date):'')}).join('')||empty('Nenhuma cobrança neste período.')}
 const sky='<svg class="sky" viewBox="0 0 330 150" preserveAspectRatio="xMaxYMax meet" fill="none" stroke="#95c7d0" aria-hidden="true"><defs><pattern id="win" width="14" height="14" patternUnits="userSpaceOnUse"><path d="M2 3h6v7H2z"/></pattern></defs><g transform="skewY(-8)"><path d="M14 190V104l40-12v98M54 92l17 8v90M76 190V52l57-16v154M133 36l23 12v142M166 190V88l45-14v116M211 74l22 10v106M240 190V28l58-15v177M298 13l24 11v166" fill="url(#win)"/></g></svg>';
+function renderLanding(){
+ document.body.classList.add('landing');
+ $('#view').innerHTML='<div class="landing-wrap"><div class="landing-copy"><div class="landing-brand"><b>⌂</b><span>Aluga</span>Fácil</div><p class="eyebrow">GESTÃO DE ALUGUÉIS SEM COMPLICAÇÃO</p><h1>Mais controle para seus imóveis. Mais tranquilidade para você.</h1><p class="landing-lead">Organize imóveis, locatários, contratos, cobranças e manutenções em um só lugar.</p><div class="landing-actions">'+btn('account','Entrar na minha carteira','primary')+btn('demoEntry','Conhecer a demonstração')+'</div><div class="landing-proof"><span>✓ Carteira online</span><span>✓ Acesso pelo celular</span><span>✓ Visão financeira</span></div></div><div class="login-card"><div class="eyebrow">ALUGAFÁCIL</div><h2>Comece pela sua carteira</h2><p>Entre para acompanhar seus imóveis e receber uma visão clara do que precisa da sua atenção.</p><div class="login-points"><div><strong>01</strong><span>Cadastre seus imóveis e locatários</span></div><div><strong>02</strong><span>Controle contratos e vencimentos</span></div><div><strong>03</strong><span>Acompanhe pagamentos e despesas</span></div></div><button class="landing-login" data-act="account">Acessar carteira online <span>→</span></button></div></div><div class="landing-features"><div><b>Imóveis organizados</b><span>Tenha uma visão rápida de casas, apartamentos e galpões.</span></div><div><b>Cobranças sob controle</b><span>Saiba quem pagou, quem está atrasado e o que vence em seguida.</span></div><div><b>Decisões mais simples</b><span>Use o fluxo financeiro para cuidar melhor da sua carteira.</span></div></div>';
+}
 function render(){
+ if(entry==='landing'){renderLanding();return}
+ document.body.classList.remove('landing');
  try{page=decodeURIComponent(location.hash.slice(1))}catch{page='Painel'}if(!pages.includes(page))page='Painel';
  $('#crumb').textContent=page;$('#nav').innerHTML=pages.map((p,i)=>'<a href="#'+p+'" class="'+(page===p?'active':'')+'">'+icon(i)+p+'</a>').join('');
  $('#switch').textContent=(wallet==='cloud'?onlineName:wallet==='demo'?'Demonstração':'Minha carteira local')+' ▾';
@@ -107,6 +113,7 @@ const input=(label,name,type='text',attrs='')=>'<label>'+label+'<input required 
 const select=(label,name,items)=>'<label>'+label+'<select required name="'+name+'"><option value="">Selecione</option>'+items.map(x=>'<option value="'+enc(x.id)+'">'+enc(x.name)+'</option>').join('')+'</select></label>';
 const amount=()=>input('Valor (R$)','amount','number','min=".01" max="999999999" step=".01"');
 function open(act){action=act;const [type,id]=act.split('|');let title,fields;
+ if(type==='demoEntry'){entry='app';wallet='demo';read();render();return}
  if(type==='logout'){if($('dialog').open)$('dialog').close();remember(null);tenants=[];walletChange('demo');toast('Sessão encerrada neste navegador.');return}
  if(type==='refresh'){refreshOnline().catch(err=>toast(err.message));return}
  if(type==='account'){
@@ -160,4 +167,3 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
 document.addEventListener('change',e=>{if(e.target.id==='month'&&/^\d{4}-\d{2}$/.test(e.target.value)){month=e.target.value;render()}if(e.target.id==='filter'){filter=e.target.value;render()}});
 $('#wallet').onchange=e=>walletChange(e.target.value);$('#switch').onclick=()=>open('wallet');$('#close').onclick=()=>$('dialog').close();addEventListener('hashchange',render);addEventListener('storage',e=>{if(wallet!=='cloud'&&e.key===key()&&!$('dialog').open){read();render()}});read();render();
 
-if(auth&&sessionStorage.getItem('af.activeTenant')){open('account');showTenants().catch(err=>{$('#error').textContent=err.message})}
