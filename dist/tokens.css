@@ -1,0 +1,95 @@
+/* AlugaFácil: design tokens e componentes base (v1, nov/2026)
+   Fonte: telas do Claude Design. Copiar para o style.css do app (ou importar antes dele).
+   Fontes: <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet"> */
+
+:root {
+  /* Marca */
+  --af-verde: #0E7C5A;          /* cor principal: botões, aba ativa, links */
+  --af-verde-escuro: #0A5E44;   /* hover/pressionado */
+  --af-verde-texto: #0B6B4E;    /* texto verde sobre fundo claro */
+  --af-verde-claro: #E3F2EC;    /* fundo de ícones, botão secundário verde */
+  --af-menta: #6EE7B7;          /* destaque sobre fundo verde/escuro */
+  --af-tinta: #16201C;          /* texto principal */
+  --af-areia: #F6F3EC;          /* fundo do app */
+  --af-branco: #FFFFFF;         /* cartões */
+
+  /* Neutros */
+  --af-texto-2: #5A6460;        /* texto secundário (contraste ≥ 4.5:1 em branco e areia) */
+  --af-texto-3: #3D4A45;
+  --af-borda-campo: #8A938F;    /* borda de input/botão secundário (≥ 3:1) */
+  --af-borda-suave: #E4E0D6;    /* bordas decorativas */
+  --af-divisor: #EFECE4;        /* linhas entre itens de lista */
+  --af-trilho: #ECE8DE;         /* fundo de segmented control */
+
+  /* Situações */
+  --af-pago-txt: #0B6B4E;    --af-pago-bg: #DDF3EA;
+  --af-atraso-txt: #A6361C;  --af-atraso-bg: #FCE7E1;  --af-atraso-ponto: #C2410C;
+  --af-avencer-txt: #3D4A45; --af-avencer-bg: #ECEAE3; --af-avencer-ponto: #8A938F;
+  --af-aviso-txt: #6B3A0A;   --af-aviso-bg: #FFF4E5;
+
+  /* Tipografia */
+  --af-font-titulo: "Outfit", system-ui, sans-serif;
+  --af-font-texto: "Inter", system-ui, sans-serif;
+  --af-h1: 600 27px/1.2 var(--af-font-titulo);      /* título de tela */
+  --af-h1-sub: 600 24px/1.2 var(--af-font-titulo);  /* título de subtela/formulário */
+  --af-h2: 600 18px/1.3 var(--af-font-titulo);
+  --af-valor-grande: 600 32px/1.1 var(--af-font-titulo);
+  --af-valor: 600 21px/1.2 var(--af-font-titulo);
+  --af-corpo: 400 15px/1.45 var(--af-font-texto);
+  --af-pequeno: 400 13px/1.4 var(--af-font-texto);
+  --af-rotulo-secao: 600 13px/1.3 var(--af-font-texto); /* + uppercase, letter-spacing .06em */
+
+  /* Espaços e raios */
+  --af-pad-tela: 16px 20px 20px;
+  --af-gap-secao: 16px;
+  --af-raio-cartao: 16px;
+  --af-raio-destaque: 20px;
+  --af-raio-campo: 12px;
+  --af-raio-botao-grande: 14px;
+  --af-alvo-min: 44px;          /* área mínima de toque */
+  --af-tabbar-altura: 84px;
+}
+
+/* ---------- Componentes base ---------- */
+body { margin: 0; background: var(--af-areia); color: var(--af-tinta); font: var(--af-corpo); }
+a { color: var(--af-verde); } a:hover { color: var(--af-verde-escuro); }
+
+.af-card { background: var(--af-branco); border-radius: var(--af-raio-cartao); padding: 14px 16px; }
+.af-destaque { background: var(--af-verde); color: #fff; border-radius: var(--af-raio-destaque); padding: 20px; }
+.af-secao-rotulo { font: var(--af-rotulo-secao); text-transform: uppercase; letter-spacing: .06em; color: var(--af-texto-2); margin: 0; }
+
+.af-btn { min-height: var(--af-alvo-min); border-radius: var(--af-raio-campo); padding: 0 16px; font: 600 14px var(--af-font-texto);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; cursor: pointer; border: 0; }
+.af-btn--primario { background: var(--af-verde); color: #fff; }
+.af-btn--primario:hover { background: var(--af-verde-escuro); color: #fff; }
+.af-btn--secundario { background: #fff; color: var(--af-tinta); border: 1px solid var(--af-borda-campo); }
+.af-btn--suave { background: var(--af-verde-claro); color: var(--af-verde-texto); }
+.af-btn--grande { height: 54px; width: 100%; border-radius: var(--af-raio-botao-grande); font-size: 16px; }
+
+.af-chip { height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--af-borda-campo); background: #fff;
+  color: var(--af-tinta); font: 500 13px var(--af-font-texto); white-space: nowrap; flex-shrink: 0; }
+.af-chip[aria-pressed="true"] { background: var(--af-verde); border-color: var(--af-verde); color: #fff; font-weight: 600; }
+
+.af-badge { font: 600 12px var(--af-font-texto); padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.af-badge--pago { color: var(--af-pago-txt); background: var(--af-pago-bg); }
+.af-badge--atraso { color: var(--af-atraso-txt); background: var(--af-atraso-bg); }
+.af-badge--avencer { color: var(--af-avencer-txt); background: var(--af-avencer-bg); }
+
+.af-campo { display: flex; flex-direction: column; gap: 6px; }
+.af-campo label, .af-campo legend { font: 600 14px var(--af-font-texto); }
+.af-campo input, .af-campo select, .af-campo textarea { box-sizing: border-box; width: 100%; min-height: 48px; border-radius: var(--af-raio-campo);
+  border: 1px solid var(--af-borda-campo); background: #fff; padding: 0 14px; font: 400 15px var(--af-font-texto); color: var(--af-tinta); }
+.af-campo input:focus-visible, .af-campo select:focus-visible, .af-btn:focus-visible, .af-chip:focus-visible { outline: 3px solid var(--af-menta); outline-offset: 2px; }
+.af-campo .af-ajuda { font: var(--af-pequeno); color: var(--af-texto-2); }
+
+.af-valor { white-space: nowrap; flex-shrink: 0; font-weight: 600; } /* valores em R$ nunca quebram linha */
+
+/* Barra inferior (celular) */
+.af-tabbar { position: fixed; inset: auto 0 0 0; height: var(--af-tabbar-altura); box-sizing: border-box; background: #fff;
+  border-top: 1px solid var(--af-borda-suave); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom)); }
+.af-tabbar a { display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: var(--af-texto-2); font: 500 11px var(--af-font-texto); }
+.af-tabbar a .af-tab-icone { width: 52px; height: 30px; border-radius: 15px; display: flex; align-items: center; justify-content: center; }
+.af-tabbar a[aria-current="page"] { color: var(--af-verde); font-weight: 600; }
+.af-tabbar a[aria-current="page"] .af-tab-icone { background: var(--af-pago-bg); }
+@media (min-width: 900px) { .af-tabbar { display: none; } } /* no desktop, manter a barra lateral (aside) já existente */
