@@ -55,7 +55,7 @@ async function writeOnline(t,type,id,f,db,month){
  default:throw Error('Operação desconhecida.');
  }
 }
-const $=s=>document.querySelector(s),pages=['Painel','Imóveis','Locatários','Contratos','Cobranças','Manutenções','Financeiro'];
+const $=s=>document.querySelector(s),pages=['Painel','Imóveis','Locatários','Contratos','Cobranças','Manutenções','Financeiro','Mais'];
 const paths=['M3 11l9-8 9 8v10H4V11 M9 21v-7h6v7','M4 21V4h12v17 M16 10h4v11 M7 8h2 M11 8h2 M7 12h2 M11 12h2 M2 21h20','M16 21v-2a5 5 0 0 0-10 0v2 M11 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M18 6a3 3 0 0 1 0 6 M19 15q3 1 3 5','M5 3h10l4 4v14H5z M14 3v5h5 M8 12h8 M8 16h6','M3 6h18v13H3z M3 10h18 M7 15h3','M14 5a5 5 0 0 0-6 6l-5 6a2 2 0 0 0 3 3l6-6a5 5 0 0 0 6-7l-3 3-3-3z','M4 3v17h17 M8 16v-4 M13 16V8 M18 16V5'];
 const icon=i=>'<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="'+paths[i]+'"/></svg>';
 const enc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -68,6 +68,8 @@ function save(){if(localStorage.getItem(key())!==raw){read();throw Error('A cart
 function toast(s){$('#toast').textContent=s;clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('#toast').textContent='',3200)}
 function walletChange(v){if(v==='cloud'){open('account');return}sessionStorage.removeItem('af.activeTenant');wallet=v;localStorage.setItem('af.wallet',v);read();render()}
 const btn=(name,label,cl='')=>'<button type="button" class="'+cl+'" data-act="'+enc(name)+'">'+label+'</button>';
+const tabItems=[['Painel','Início',0],['Imóveis','Imóveis',1],['Cobranças','Cobranças',4],['Financeiro','Financeiro',6],['Mais','Mais',7]];
+function renderTabbar(active){$('#tabbar').innerHTML=tabItems.map(([route,label,i])=>'<a href="#'+route+'" '+(active===route||(['Contratos','Locatários','Manutenções'].includes(active)&&route==='Mais')?'aria-current="page"':'')+'><span class="af-tab-icone">'+icon(i)+'</span><span>'+label+'</span></a>').join('')}
 const badge=s=>'<span class="pill '+(s==='Em atraso'?'late':s==='Pago'||s==='Concluída'?'':'pending')+'">'+enc(s)+'</span>';
 const item=(a,b,c='',d='')=>'<div class="item"><div><h3>'+enc(a)+'</h3><small>'+enc(b)+'</small></div><div class="right">'+c+(d?'<small>'+d+'</small>':'')+'</div></div>';
 const empty=s=>'<p class="empty">'+s+'</p>',panel=(title,body,extra='')=>'<section class="panel"><div class="row"><h2>'+title+'</h2>'+extra+'</div>'+body+'</section>';
@@ -103,10 +105,13 @@ function render(){
  $('#crumb').textContent=page;$('#nav').innerHTML=pages.map((p,i)=>'<a href="#'+p+'" class="'+(page===p?'active':'')+'">'+icon(i)+p+'</a>').join('');
  $('#switch').textContent=(wallet==='cloud'?onlineName:wallet==='demo'?'Demonstração':'Minha carteira local')+' ▾';
  const cs=charges(db,month),fin=cash(db,month),sum=list=>list.reduce((a,c)=>a+c.amount,0);
- const meta={'Imóveis':['Novo imóvel','property','Sua carteira de casas, apartamentos e galpões.'],'Locatários':['Novo locatário','person','Contatos dos responsáveis pelos contratos.'],'Contratos':['Novo contrato','lease','Vigência, valor mensal e vencimento de cada locação.'],'Cobranças':['','','Acompanhe os vencimentos e registre os recebimentos.'],'Manutenções':['Agendar manutenção','job','Serviços agendados para os seus imóveis.'],'Financeiro':['Lançar despesa','expense','Entradas e saídas pela data de movimentação.']};
+ const meta={'Imóveis':['Novo imóvel','property','Sua carteira de casas, apartamentos e galpões.'],'Locatários':['Novo locatário','person','Contatos dos responsáveis pelos contratos.'],'Contratos':['Novo contrato','lease','Vigência, valor mensal e vencimento de cada locação.'],'Cobranças':['','','Acompanhe os vencimentos e registre os recebimentos.'],'Manutenções':['Agendar manutenção','job','Serviços agendados para os seus imóveis.'],'Financeiro':['Lançar despesa','expense','Entradas e saídas pela data de movimentação.'],'Mais':['','','Acesso rápido à sua gestão.']};
  let h='';
  if(page==='Painel'){
  h='<div class="hero">'+sky+'<div class="eyebrow">'+(wallet==='demo'?'CARTEIRA DE DEMONSTRAÇÃO':wallet==='cloud'?'CARTEIRA ONLINE':'CARTEIRA LOCAL')+'</div><h1>Visão geral</h1><p>Acompanhe o movimento dos seus aluguéis.</p></div>'+monthPick()+'<div class="cards">'+card('Recebido no mês',money(fin.income),6)+card('A receber no mês',money(sum(cs.filter(c=>!c.paid))),4)+card('Em atraso no mês',money(sum(cs.filter(c=>c.status==='Em atraso'))),3,'over')+'</div><div class="grid">'+panel('Fluxo de caixa',chart(),navLink('Financeiro','Detalhes'))+panel('Carteira de imóveis',item('Imóveis cadastrados','',db.properties.length)+item('Contratos vigentes','Na data de hoje',db.leases.filter(l=>l.start<=today()&&l.end>=today()).length),navLink('Imóveis','Ver imóveis'))+'</div>'+panel('Cobranças do mês',chargeRows(cs.slice(0,5)),navLink('Cobranças','Ver todas'));
+ }else if(page==='Mais'){
+   const activeWallet=wallet==='cloud'?'Carteira online':wallet==='real'?'Carteira local':'Demonstração';
+   h='<div class="sectionhead"><h1>Mais</h1><p class="sub">Acesso rápido à sua gestão.</p></div><section class="more-wallet"><img src="/icone-app.svg" alt=""><div><small>Carteira em uso</small><strong>'+activeWallet+'</strong></div>'+btn('wallet','Trocar')+'</section><section class="more-group"><h2>Gestão</h2><div class="more-list">'+['Contratos|'+db.leases.length+' vigentes','Locatários|'+db.people.length+' contatos','Manutenções|'+db.jobs.filter(j=>!j.done).length+' agendadas'].map(x=>{const [p,n]=x.split('|');return '<a href="#'+p+'"><span class="more-icon">'+icon(p==='Contratos'?3:p==='Locatários'?2:5)+'</span><span><b>'+p+'</b><small>'+n+'</small></span><strong>›</strong></a>'}).join('')+'</div></section>'+(wallet==='cloud'?'<section class="more-group"><h2>Conta</h2><div class="more-list"><button class="more-exit" data-act="logout">Sair da conta</button></div></section>':'');
  }else{
  const [label,act,sub]=meta[page];h='<div class="row sectionhead"><div><h1>'+page+'</h1><p class="sub">'+sub+'</p></div>'+(act?btn(act,'＋ '+label,'primary'):'')+'</div>';
  if(page==='Imóveis')h+=panel('Imóveis cadastrados',db.properties.map(p=>item(p.name,p.address,badge(p.type),db.leases.some(l=>l.property===p.id&&l.start<=today()&&l.end>=today())?'Ocupado':'Disponível')).join('')||empty('Cadastre o primeiro imóvel para começar.'));
@@ -118,7 +123,7 @@ function render(){
  h+=monthPick()+'<div class="cards">'+card('Entradas',money(fin.income),4)+card('Saídas',money(fin.cost),6)+card('Saldo do mês',money(fin.income-fin.cost),6)+'</div>'+panel('Movimentações',moves.map(x=>item(x.name,date(x.date)+' · '+x.type,money(x.amount))).join('')||empty('Nenhuma movimentação no mês.'),btn('exportFinance','Exportar CSV'))}
  }
  if(wallet==='cloud')h='<div class="row"><strong>Carteira online · '+enc(onlineName)+'</strong><div class="actions">'+btn('refresh','Atualizar')+btn('logout','Sair da conta')+'</div></div>'+h;
- $('#view').innerHTML=h;
+ $('#view').innerHTML=h;renderTabbar(page);
 }
 const input=(label,name,type='text',attrs='')=>'<label>'+label+'<input required name="'+name+'" type="'+type+'" '+attrs+'></label>';
 const select=(label,name,items)=>'<label>'+label+'<select required name="'+name+'"><option value="">Selecione</option>'+items.map(x=>'<option value="'+enc(x.id)+'">'+enc(x.name)+'</option>').join('')+'</select></label>';
