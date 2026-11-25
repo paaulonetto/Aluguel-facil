@@ -226,6 +226,51 @@ function lpAnimate(){
  addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',onScroll);requestAnimationFrame(frame);
  lpAnimate.stop=()=>{io.disconnect();removeEventListener('scroll',onScroll);removeEventListener('resize',onScroll);if(raf)cancelAnimationFrame(raf)};
 }
+// Calendário da semana no Início: contratos que começam/terminam, aluguéis, manutenções (Claude · design/ux-ui).
+let wkOffset=0,wkDay=null;
+const wkDays=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'],wkDaysLong=['segunda','terça','quarta','quinta','sexta','sábado','domingo'];
+const wkMonths=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const wkSvg=d=>'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>';
+const wkIcon={due:wkSvg('M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6'),late:wkSvg('M12 8v5M12 16h.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0'),paid:wkSvg('m5 12 5 5 9-10'),job:wkSvg('M14.7 6.3a4 4 0 0 0 5 5l-9.4 9.4a2.1 2.1 0 0 1-3-3zM14.7 6.3l3-3'),start:wkSvg('M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM14 3v5h5M12 11v6M9 14h6'),end:wkSvg('M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM14 3v5h5M9 15h6')};
+const wkTag={due:'A vencer',late:'Em atraso',paid:'Pago',job:'Manutenção',start:'Início',end:'Fim do contrato'};
+const wkOrder={late:0,due:1,job:2,end:3,start:4,paid:5};
+const wkAdd=(iso,n)=>{const d=new Date(iso+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+const wkStart=off=>{const t=today(),wd=(new Date(t+'T12:00:00Z').getUTCDay()+6)%7;return wkAdd(t,-wd+off*7)};
+const wkLabel=d=>(+d.slice(8))+' '+wkMonths[+d.slice(5,7)-1];
+function wkEvents(from,to){
+ const ev=[],nm=(v,list,fb)=>(v&&typeof v==='object'?v.name:list.find(x=>x.id===v)?.name)||fb,names=l=>nm(l.property,db.properties,'Imóvel')+' · '+nm(l.person,db.people,'Locatário');
+ for(const m of new Set([from.slice(0,7),to.slice(0,7)]))for(const c of charges(db,m)){
+  if(c.due<from||c.due>to)continue;
+  const type=c.status==='Pago'?'paid':c.status==='Em atraso'?'late':'due';
+  ev.push({date:c.due,type,title:type==='paid'?'Aluguel recebido':'Aluguel vence',sub:names(c),amount:c.amount,act:c.paid?'':'pay|'+c.key,href:'#Cobranças'});
+ }
+ for(const l of db.leases){
+  if(l.start>=from&&l.start<=to)ev.push({date:l.start,type:'start',title:'Contrato começa',sub:names(l),href:'#Contratos'});
+  if(l.end>=from&&l.end<=to)ev.push({date:l.end,type:'end',title:'Contrato termina',sub:names(l),href:'#Contratos'});
+ }
+ for(const j of db.jobs)if(!j.done&&j.date>=from&&j.date<=to)ev.push({date:j.date,type:'job',title:j.name,sub:db.properties.find(p=>p.id===j.property)?.name||'',href:'#Manutenções'});
+ return ev;
+}
+function weekCard(){
+ const from=wkStart(wkOffset),to=wkAdd(from,6),now=today(),ev=wkEvents(from,to),days=Array.from({length:7},(_,i)=>wkAdd(from,i));
+ const picked=days.includes(wkDay),base=days.includes(now)?now:from,overview=!picked&&!ev.some(e=>e.date===base)&&ev.some(e=>e.date>=base),sel=picked?wkDay:overview?null:base;
+ const range=from.slice(5,7)===to.slice(5,7)?(+from.slice(8))+' a '+wkLabel(to):wkLabel(from)+' a '+wkLabel(to);
+ const title=wkOffset===0?'Esta semana':wkOffset===1?'Próxima semana':wkOffset===-1?'Semana passada':'Semana de '+wkLabel(from);
+ const strip=days.map((d,i)=>{const de=ev.filter(e=>e.date===d),types=[...new Set(de.sort((a,b)=>wkOrder[a.type]-wkOrder[b.type]).map(e=>e.type))].slice(0,3);
+  return '<button type="button" class="wk-day'+(d===sel?' is-sel':'')+(d===now?' is-today':'')+'" data-day="'+d+'" aria-pressed="'+(d===sel)+'"><span>'+wkDays[i]+'</span><b>'+(+d.slice(8))+'</b><span class="wk-sr">'+wkMonths[+d.slice(5,7)-1]+(d===now?', hoje':'')+', '+(de.length?de.length+' evento'+(de.length>1?'s':''):'sem eventos')+'</span><i aria-hidden="true">'+types.map(t=>'<em class="wk-dot wk-'+t+'"></em>').join('')+'</i></button>'}).join('');
+ const list=ev.filter(e=>overview?e.date>=base:e.date===sel).sort((a,b)=>overview?a.date.localeCompare(b.date)||wkOrder[a.type]-wkOrder[b.type]:wkOrder[a.type]-wkOrder[b.type]).map(e=>{
+  const inner='<span class="wk-ico wk-'+e.type+'" aria-hidden="true">'+wkIcon[e.type]+'</span><span class="wk-txt"><b>'+enc(e.title)+'</b><small>'+(overview?wkDays[days.indexOf(e.date)]+', '+wkLabel(e.date)+' · ':'')+enc(e.sub)+'</small></span><span class="wk-right">'+(e.amount?'<strong>'+money(e.amount)+'</strong>':'')+'<em class="wk-tag wk-'+e.type+'">'+wkTag[e.type]+'</em></span>';
+  return e.act?'<button type="button" class="wk-ev" data-act="'+enc(e.act)+'">'+inner+'</button>':'<a class="wk-ev" href="'+e.href+'">'+inner+'</a>'}).join('');
+ const dayName=overview?(wkOffset===0?'Próximos dias desta semana':'Eventos da semana'):(sel===now?'Hoje, ':'')+wkDaysLong[days.indexOf(sel)]+', '+wkLabel(sel);
+ const arrow=d=>'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>';
+ return '<section class="wk" id="home-week" aria-labelledby="wk-t"><div class="wk-head"><div><h2 id="wk-t">'+title+'</h2><small>'+range+' · '+ev.length+' evento'+(ev.length===1?'':'s')+'</small></div><div class="wk-nav">'+(wkOffset?'<button type="button" class="wk-today" data-week="0">Hoje</button>':'')+'<button type="button" data-week="-1" aria-label="Semana anterior">'+arrow('m15 6-6 6 6 6')+'</button><button type="button" data-week="1" aria-label="Próxima semana">'+arrow('m9 6 6 6-6 6')+'</button></div></div><div class="wk-strip" role="group" aria-label="Dias da semana">'+strip+'</div><div class="wk-list" aria-live="polite"><p class="wk-dayname">'+dayName+'</p>'+(list||'<p class="wk-empty">Nada marcado para este dia.</p>')+'</div><div class="wk-legend" aria-hidden="true"><span><em class="wk-dot wk-due"></em>Aluguel</span><span><em class="wk-dot wk-late"></em>Em atraso</span><span><em class="wk-dot wk-paid"></em>Recebido</span><span><em class="wk-dot wk-job"></em>Manutenção</span><span><em class="wk-dot wk-start"></em>Contrato</span></div></section>';
+}
+document.addEventListener('click',e=>{
+ const b=e.target.closest('#home-week [data-week],#home-week [data-day]');if(!b)return;
+ if(b.dataset.week!==undefined){const n=+b.dataset.week;wkOffset=n?wkOffset+n:0;wkDay=null}else wkDay=b.dataset.day;
+ const focus=b.dataset.day?'[data-day="'+b.dataset.day+'"]':'[data-week="'+(b.dataset.week==='0'?'1':b.dataset.week)+'"]';
+ $('#home-week').outerHTML=weekCard();$('#home-week '+focus)?.focus();
+});
 function homePage(cs,fin){
  const expected=cs.reduce((n,c)=>n+c.amount,0), received=fin.income, pending=Math.max(0,expected-received), paid=cs.filter(c=>c.paid).length;
  const overdue=cs.filter(c=>c.status==='Em atraso'), upcoming=cs.filter(c=>c.status==='A vencer');
@@ -233,7 +278,7 @@ function homePage(cs,fin){
  const nextJobs=db.jobs.filter(j=>!j.done&&j.date>=now&&j.date<=limit).slice(0,3);
  const pct=expected?Math.min(100,Math.round(received/expected*100)):0;
  const attention=[...overdue.slice(0,3).map(c=>'<button class="home-attention-row" data-act="pay|'+enc(c.key)+'"><span class="home-attention-icon home-attention-danger">!</span><span><b>'+enc(c.person.name)+'</b><small>'+enc(c.property.name)+' · '+Math.max(1,Math.ceil((Date.now()-new Date(c.due+'T12:00:00'))/86400000))+' dias</small></span><strong>'+money(c.amount)+'</strong></button>'),...nextJobs.map(j=>'<a class="home-attention-row" href="#Manutenções"><span class="home-attention-icon home-attention-ok">⌕</span><span><b>'+enc(j.name)+'</b><small>'+enc(pname(j.property))+' · '+date(j.date)+'</small></span><em>Agendada</em></a>')].slice(0,3).join('');
- return '<div class="home-top"><a class="home-logo" href="#Painel"><img src="/logotipo-cor.svg" alt="AlugaFácil"></a>'+monthPick()+'</div><div class="home-greeting"><h1>'+(['Bom dia','Boa tarde','Boa noite'][new Date().getHours()<12?0:new Date().getHours()<18?1:2])+'</h1><p>Veja o que pede sua atenção hoje.</p></div><section class="home-received"><span>Recebido em '+monthName(month)+'</span><div><strong>'+money(received)+'</strong><small>de '+money(expected)+'</small></div><div class="home-progress"><i style="width:'+pct+'%"></i></div><div class="home-received-foot"><span>'+paid+' de '+cs.length+' aluguéis pagos</span><span>Faltam '+money(pending)+'</span></div></section><div class="home-summary"><a href="#Cobranças"><span>● Em atraso</span><strong>'+money(overdue.reduce((n,c)=>n+c.amount,0))+'</strong><small>'+overdue.length+' cobranças</small></a><a href="#Cobranças"><span>● A vencer</span><strong>'+money(upcoming.reduce((n,c)=>n+c.amount,0))+'</strong><small>'+upcoming.length+' cobrança'+(upcoming.length===1?'':'s')+(upcoming[0]?' · dia '+upcoming[0].due.slice(-2):'')+'</small></a></div><section class="home-attention"><div class="home-section-head"><h2>Precisa de atenção</h2><a href="#Cobranças">Ver cobranças</a></div><div class="home-attention-list">'+(attention||'<p class="empty">Nenhuma pendência para os próximos dias.</p>')+'</div></section>';
+ return '<div class="home-top"><a class="home-logo" href="#Painel"><img src="/logotipo-cor.svg" alt="AlugaFácil"></a>'+monthPick()+'</div><div class="home-greeting"><h1>'+(['Bom dia','Boa tarde','Boa noite'][new Date().getHours()<12?0:new Date().getHours()<18?1:2])+'</h1><p>Veja o que pede sua atenção hoje.</p></div><section class="home-received"><span>Recebido em '+monthName(month)+'</span><div><strong>'+money(received)+'</strong><small>de '+money(expected)+'</small></div><div class="home-progress"><i style="width:'+pct+'%"></i></div><div class="home-received-foot"><span>'+paid+' de '+cs.length+' aluguéis pagos</span><span>Faltam '+money(pending)+'</span></div></section><div class="home-summary"><a href="#Cobranças"><span>● Em atraso</span><strong>'+money(overdue.reduce((n,c)=>n+c.amount,0))+'</strong><small>'+overdue.length+' cobranças</small></a><a href="#Cobranças"><span>● A vencer</span><strong>'+money(upcoming.reduce((n,c)=>n+c.amount,0))+'</strong><small>'+upcoming.length+' cobrança'+(upcoming.length===1?'':'s')+(upcoming[0]?' · dia '+upcoming[0].due.slice(-2):'')+'</small></a></div>'+weekCard()+'<section class="home-attention"><div class="home-section-head"><h2>Precisa de atenção</h2><a href="#Cobranças">Ver cobranças</a></div><div class="home-attention-list">'+(attention||'<p class="empty">Nenhuma pendência para os próximos dias.</p>')+'</div></section>';
 }
 function render(){
  if(entry==='landing'){renderLandingV2();return}lpAnimate.stop?.();

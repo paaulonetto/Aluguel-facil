@@ -339,6 +339,51 @@ body.landing{background:var(--af-areia)}
 .home-section-head a{display:inline-flex;align-items:center;min-height:44px;padding:0 4px}
 dialog #close{min-width:44px;min-height:44px}
 .lp-footer a{display:inline-flex;align-items:center;min-height:44px}
+
+/* Início · calendário da semana (Claude · design/ux-ui) */
+.wk{background:var(--af-branco);border-radius:var(--af-raio-cartao);padding:16px;margin-top:14px;display:flex;flex-direction:column;gap:14px}
+.wk-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.wk-head h2{margin:0;font:600 18px/1.3 var(--af-font-titulo);color:var(--af-tinta)}
+.wk-head small{display:block;margin-top:2px;font-size:13px;color:var(--af-texto-2)}
+.wk-nav{display:flex;gap:6px;flex-shrink:0}
+.wk-nav button{min-width:44px;min-height:44px;padding:0 10px;border-radius:12px;border:1px solid var(--af-borda-suave);background:var(--af-branco);color:var(--af-tinta);display:inline-flex;align-items:center;justify-content:center;font:600 14px var(--af-font-texto);cursor:pointer}
+.wk-nav button:hover{border-color:var(--af-borda-campo)}
+.wk-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.wk-day{min-height:66px;padding:6px 0;border:0;border-radius:14px;background:transparent;color:var(--af-tinta);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:var(--af-font-texto);cursor:pointer;transition:background-color .2s ease}
+.wk-day span{font-size:12px;color:var(--af-texto-2)}
+.wk-day b{font:600 17px/1.1 var(--af-font-titulo)}
+.wk-day i{display:flex;gap:3px;height:6px;font-style:normal}
+.wk-day:hover:not(.is-sel){background:var(--af-areia)}
+.wk-day.is-today{box-shadow:inset 0 0 0 1.5px var(--af-verde)}
+.wk-day.is-today b{color:var(--af-verde-texto)}
+.wk-day.is-sel{background:var(--af-verde);box-shadow:none}
+.wk-day.is-sel span{color:#EAF8F2}.wk-day.is-sel b{color:#fff}
+.wk-day.is-sel .wk-dot{box-shadow:0 0 0 1.5px #fff}
+.wk-dot{display:block;width:6px;height:6px;border-radius:3px;font-style:normal}
+.wk-dot.wk-due{background:#8A938F}.wk-dot.wk-late{background:var(--af-atraso-ponto)}.wk-dot.wk-paid{background:var(--af-verde)}
+.wk-dot.wk-job{background:#2F6FDB}.wk-dot.wk-start,.wk-dot.wk-end{background:var(--af-tinta)}
+.wk-list{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--af-divisor);padding-top:12px}
+.wk-dayname{margin:0 0 6px;font:600 13px var(--af-font-texto);color:var(--af-texto-2)}
+.wk-dayname::first-letter{text-transform:uppercase}
+.wk-ev{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 6px;border:0;border-radius:12px;background:none;color:var(--af-tinta);text-align:left;text-decoration:none;font:inherit;cursor:pointer}
+.wk-ev:hover{background:var(--af-areia)}
+.wk-ico{flex-shrink:0;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.wk-ico.wk-due{background:#ECEAE3;color:#3D4A45}.wk-ico.wk-late{background:var(--af-atraso-bg);color:var(--af-atraso-txt)}
+.wk-ico.wk-paid{background:var(--af-pago-bg);color:var(--af-pago-txt)}.wk-ico.wk-job{background:#DCE8FB;color:#1D4ED8}
+.wk-ico.wk-start,.wk-ico.wk-end{background:#E6EAE8;color:var(--af-tinta)}
+.wk-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.wk-txt b{font-size:15px;font-weight:600}
+.wk-txt small{font-size:13px;line-height:1.35;color:var(--af-texto-2);display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.wk-right{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.wk-right strong{font-size:15px;white-space:nowrap}
+.wk-tag{font:600 12px var(--af-font-texto);font-style:normal;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.wk-tag.wk-due{background:#ECEAE3;color:#3D4A45}.wk-tag.wk-late{background:var(--af-atraso-bg);color:var(--af-atraso-txt)}
+.wk-tag.wk-paid{background:var(--af-pago-bg);color:var(--af-pago-txt)}.wk-tag.wk-job{background:#DCE8FB;color:#1D4ED8}
+.wk-tag.wk-start,.wk-tag.wk-end{background:#E6EAE8;color:var(--af-tinta)}
+.wk-empty{margin:4px 0 6px;font-size:14px;color:var(--af-texto-2)}
+.wk-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--af-texto-2)}
+.wk-legend span{display:inline-flex;align-items:center;gap:6px}
+.wk-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 </style>
   <link rel="icon" href="/favicon.ico" sizes="32x32">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -617,6 +662,51 @@ function lpAnimate(){
  addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',onScroll);requestAnimationFrame(frame);
  lpAnimate.stop=()=>{io.disconnect();removeEventListener('scroll',onScroll);removeEventListener('resize',onScroll);if(raf)cancelAnimationFrame(raf)};
 }
+// Calendário da semana no Início: contratos que começam/terminam, aluguéis, manutenções (Claude · design/ux-ui).
+let wkOffset=0,wkDay=null;
+const wkDays=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'],wkDaysLong=['segunda','terça','quarta','quinta','sexta','sábado','domingo'];
+const wkMonths=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const wkSvg=d=>'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>';
+const wkIcon={due:wkSvg('M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6'),late:wkSvg('M12 8v5M12 16h.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0'),paid:wkSvg('m5 12 5 5 9-10'),job:wkSvg('M14.7 6.3a4 4 0 0 0 5 5l-9.4 9.4a2.1 2.1 0 0 1-3-3zM14.7 6.3l3-3'),start:wkSvg('M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM14 3v5h5M12 11v6M9 14h6'),end:wkSvg('M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM14 3v5h5M9 15h6')};
+const wkTag={due:'A vencer',late:'Em atraso',paid:'Pago',job:'Manutenção',start:'Início',end:'Fim do contrato'};
+const wkOrder={late:0,due:1,job:2,end:3,start:4,paid:5};
+const wkAdd=(iso,n)=>{const d=new Date(iso+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+const wkStart=off=>{const t=today(),wd=(new Date(t+'T12:00:00Z').getUTCDay()+6)%7;return wkAdd(t,-wd+off*7)};
+const wkLabel=d=>(+d.slice(8))+' '+wkMonths[+d.slice(5,7)-1];
+function wkEvents(from,to){
+ const ev=[],nm=(v,list,fb)=>(v&&typeof v==='object'?v.name:list.find(x=>x.id===v)?.name)||fb,names=l=>nm(l.property,db.properties,'Imóvel')+' · '+nm(l.person,db.people,'Locatário');
+ for(const m of new Set([from.slice(0,7),to.slice(0,7)]))for(const c of charges(db,m)){
+  if(c.due<from||c.due>to)continue;
+  const type=c.status==='Pago'?'paid':c.status==='Em atraso'?'late':'due';
+  ev.push({date:c.due,type,title:type==='paid'?'Aluguel recebido':'Aluguel vence',sub:names(c),amount:c.amount,act:c.paid?'':'pay|'+c.key,href:'#Cobranças'});
+ }
+ for(const l of db.leases){
+  if(l.start>=from&&l.start<=to)ev.push({date:l.start,type:'start',title:'Contrato começa',sub:names(l),href:'#Contratos'});
+  if(l.end>=from&&l.end<=to)ev.push({date:l.end,type:'end',title:'Contrato termina',sub:names(l),href:'#Contratos'});
+ }
+ for(const j of db.jobs)if(!j.done&&j.date>=from&&j.date<=to)ev.push({date:j.date,type:'job',title:j.name,sub:db.properties.find(p=>p.id===j.property)?.name||'',href:'#Manutenções'});
+ return ev;
+}
+function weekCard(){
+ const from=wkStart(wkOffset),to=wkAdd(from,6),now=today(),ev=wkEvents(from,to),days=Array.from({length:7},(_,i)=>wkAdd(from,i));
+ const picked=days.includes(wkDay),base=days.includes(now)?now:from,overview=!picked&&!ev.some(e=>e.date===base)&&ev.some(e=>e.date>=base),sel=picked?wkDay:overview?null:base;
+ const range=from.slice(5,7)===to.slice(5,7)?(+from.slice(8))+' a '+wkLabel(to):wkLabel(from)+' a '+wkLabel(to);
+ const title=wkOffset===0?'Esta semana':wkOffset===1?'Próxima semana':wkOffset===-1?'Semana passada':'Semana de '+wkLabel(from);
+ const strip=days.map((d,i)=>{const de=ev.filter(e=>e.date===d),types=[...new Set(de.sort((a,b)=>wkOrder[a.type]-wkOrder[b.type]).map(e=>e.type))].slice(0,3);
+  return '<button type="button" class="wk-day'+(d===sel?' is-sel':'')+(d===now?' is-today':'')+'" data-day="'+d+'" aria-pressed="'+(d===sel)+'"><span>'+wkDays[i]+'</span><b>'+(+d.slice(8))+'</b><span class="wk-sr">'+wkMonths[+d.slice(5,7)-1]+(d===now?', hoje':'')+', '+(de.length?de.length+' evento'+(de.length>1?'s':''):'sem eventos')+'</span><i aria-hidden="true">'+types.map(t=>'<em class="wk-dot wk-'+t+'"></em>').join('')+'</i></button>'}).join('');
+ const list=ev.filter(e=>overview?e.date>=base:e.date===sel).sort((a,b)=>overview?a.date.localeCompare(b.date)||wkOrder[a.type]-wkOrder[b.type]:wkOrder[a.type]-wkOrder[b.type]).map(e=>{
+  const inner='<span class="wk-ico wk-'+e.type+'" aria-hidden="true">'+wkIcon[e.type]+'</span><span class="wk-txt"><b>'+enc(e.title)+'</b><small>'+(overview?wkDays[days.indexOf(e.date)]+', '+wkLabel(e.date)+' · ':'')+enc(e.sub)+'</small></span><span class="wk-right">'+(e.amount?'<strong>'+money(e.amount)+'</strong>':'')+'<em class="wk-tag wk-'+e.type+'">'+wkTag[e.type]+'</em></span>';
+  return e.act?'<button type="button" class="wk-ev" data-act="'+enc(e.act)+'">'+inner+'</button>':'<a class="wk-ev" href="'+e.href+'">'+inner+'</a>'}).join('');
+ const dayName=overview?(wkOffset===0?'Próximos dias desta semana':'Eventos da semana'):(sel===now?'Hoje, ':'')+wkDaysLong[days.indexOf(sel)]+', '+wkLabel(sel);
+ const arrow=d=>'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>';
+ return '<section class="wk" id="home-week" aria-labelledby="wk-t"><div class="wk-head"><div><h2 id="wk-t">'+title+'</h2><small>'+range+' · '+ev.length+' evento'+(ev.length===1?'':'s')+'</small></div><div class="wk-nav">'+(wkOffset?'<button type="button" class="wk-today" data-week="0">Hoje</button>':'')+'<button type="button" data-week="-1" aria-label="Semana anterior">'+arrow('m15 6-6 6 6 6')+'</button><button type="button" data-week="1" aria-label="Próxima semana">'+arrow('m9 6 6 6-6 6')+'</button></div></div><div class="wk-strip" role="group" aria-label="Dias da semana">'+strip+'</div><div class="wk-list" aria-live="polite"><p class="wk-dayname">'+dayName+'</p>'+(list||'<p class="wk-empty">Nada marcado para este dia.</p>')+'</div><div class="wk-legend" aria-hidden="true"><span><em class="wk-dot wk-due"></em>Aluguel</span><span><em class="wk-dot wk-late"></em>Em atraso</span><span><em class="wk-dot wk-paid"></em>Recebido</span><span><em class="wk-dot wk-job"></em>Manutenção</span><span><em class="wk-dot wk-start"></em>Contrato</span></div></section>';
+}
+document.addEventListener('click',e=>{
+ const b=e.target.closest('#home-week [data-week],#home-week [data-day]');if(!b)return;
+ if(b.dataset.week!==undefined){const n=+b.dataset.week;wkOffset=n?wkOffset+n:0;wkDay=null}else wkDay=b.dataset.day;
+ const focus=b.dataset.day?'[data-day="'+b.dataset.day+'"]':'[data-week="'+(b.dataset.week==='0'?'1':b.dataset.week)+'"]';
+ $('#home-week').outerHTML=weekCard();$('#home-week '+focus)?.focus();
+});
 function homePage(cs,fin){
  const expected=cs.reduce((n,c)=>n+c.amount,0), received=fin.income, pending=Math.max(0,expected-received), paid=cs.filter(c=>c.paid).length;
  const overdue=cs.filter(c=>c.status==='Em atraso'), upcoming=cs.filter(c=>c.status==='A vencer');
@@ -624,7 +714,7 @@ function homePage(cs,fin){
  const nextJobs=db.jobs.filter(j=>!j.done&&j.date>=now&&j.date<=limit).slice(0,3);
  const pct=expected?Math.min(100,Math.round(received/expected*100)):0;
  const attention=[...overdue.slice(0,3).map(c=>'<button class="home-attention-row" data-act="pay|'+enc(c.key)+'"><span class="home-attention-icon home-attention-danger">!</span><span><b>'+enc(c.person.name)+'</b><small>'+enc(c.property.name)+' · '+Math.max(1,Math.ceil((Date.now()-new Date(c.due+'T12:00:00'))/86400000))+' dias</small></span><strong>'+money(c.amount)+'</strong></button>'),...nextJobs.map(j=>'<a class="home-attention-row" href="#Manutenções"><span class="home-attention-icon home-attention-ok">⌕</span><span><b>'+enc(j.name)+'</b><small>'+enc(pname(j.property))+' · '+date(j.date)+'</small></span><em>Agendada</em></a>')].slice(0,3).join('');
- return '<div class="home-top"><a class="home-logo" href="#Painel"><img src="/logotipo-cor.svg" alt="AlugaFácil"></a>'+monthPick()+'</div><div class="home-greeting"><h1>'+(['Bom dia','Boa tarde','Boa noite'][new Date().getHours()<12?0:new Date().getHours()<18?1:2])+'</h1><p>Veja o que pede sua atenção hoje.</p></div><section class="home-received"><span>Recebido em '+monthName(month)+'</span><div><strong>'+money(received)+'</strong><small>de '+money(expected)+'</small></div><div class="home-progress"><i style="width:'+pct+'%"></i></div><div class="home-received-foot"><span>'+paid+' de '+cs.length+' aluguéis pagos</span><span>Faltam '+money(pending)+'</span></div></section><div class="home-summary"><a href="#Cobranças"><span>● Em atraso</span><strong>'+money(overdue.reduce((n,c)=>n+c.amount,0))+'</strong><small>'+overdue.length+' cobranças</small></a><a href="#Cobranças"><span>● A vencer</span><strong>'+money(upcoming.reduce((n,c)=>n+c.amount,0))+'</strong><small>'+upcoming.length+' cobrança'+(upcoming.length===1?'':'s')+(upcoming[0]?' · dia '+upcoming[0].due.slice(-2):'')+'</small></a></div><section class="home-attention"><div class="home-section-head"><h2>Precisa de atenção</h2><a href="#Cobranças">Ver cobranças</a></div><div class="home-attention-list">'+(attention||'<p class="empty">Nenhuma pendência para os próximos dias.</p>')+'</div></section>';
+ return '<div class="home-top"><a class="home-logo" href="#Painel"><img src="/logotipo-cor.svg" alt="AlugaFácil"></a>'+monthPick()+'</div><div class="home-greeting"><h1>'+(['Bom dia','Boa tarde','Boa noite'][new Date().getHours()<12?0:new Date().getHours()<18?1:2])+'</h1><p>Veja o que pede sua atenção hoje.</p></div><section class="home-received"><span>Recebido em '+monthName(month)+'</span><div><strong>'+money(received)+'</strong><small>de '+money(expected)+'</small></div><div class="home-progress"><i style="width:'+pct+'%"></i></div><div class="home-received-foot"><span>'+paid+' de '+cs.length+' aluguéis pagos</span><span>Faltam '+money(pending)+'</span></div></section><div class="home-summary"><a href="#Cobranças"><span>● Em atraso</span><strong>'+money(overdue.reduce((n,c)=>n+c.amount,0))+'</strong><small>'+overdue.length+' cobranças</small></a><a href="#Cobranças"><span>● A vencer</span><strong>'+money(upcoming.reduce((n,c)=>n+c.amount,0))+'</strong><small>'+upcoming.length+' cobrança'+(upcoming.length===1?'':'s')+(upcoming[0]?' · dia '+upcoming[0].due.slice(-2):'')+'</small></a></div>'+weekCard()+'<section class="home-attention"><div class="home-section-head"><h2>Precisa de atenção</h2><a href="#Cobranças">Ver cobranças</a></div><div class="home-attention-list">'+(attention||'<p class="empty">Nenhuma pendência para os próximos dias.</p>')+'</div></section>';
 }
 function render(){
  if(entry==='landing'){renderLandingV2();return}lpAnimate.stop?.();
