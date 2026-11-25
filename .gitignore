@@ -6,3 +6,7 @@ AlugaFacil.zip
 .env
 .env.*
 
+.npm-cache/
+AlugaFacil-handoff.zip
+.claude/
+assets/Fotos Pexels/
