@@ -329,6 +329,12 @@ body.landing{background:var(--af-areia)}
  .lp-marquee{-webkit-mask-image:none;mask-image:none}
  .lp-marquee-track span:nth-child(n+9){display:none}
 }
+
+/* Acessibilidade: áreas de toque de no mínimo 44 px (Claude · design/ux-ui) */
+@media(max-width:899px){.home-logo{display:inline-flex;min-height:44px;align-items:center}}
+.home-section-head a{display:inline-flex;align-items:center;min-height:44px;padding:0 4px}
+dialog #close{min-width:44px;min-height:44px}
+.lp-footer a{display:inline-flex;align-items:center;min-height:44px}
 </style>
   <link rel="icon" href="/favicon.ico" sizes="32x32">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
