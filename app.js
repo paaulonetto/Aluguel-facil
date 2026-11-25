@@ -98,6 +98,15 @@ function renderLandingV2(){
   <section class="final-cta"><p class="eyebrow">SUA CARTEIRA MERECE MAIS CLAREZA</p><h2>Comece a organizar seus aluguéis hoje.</h2><p>Teste a demonstração ou entre na sua carteira online.</p><div class="landing-actions">${btn('account','Entrar na minha carteira','primary')}${btn('demoEntry','Conhecer o AlugaFácil')}</div></section>
   <footer class="landing-footer"><div class="landing-brand"><b>⌂</b><span>Aluga</span>Fácil</div><span>Gestão de aluguéis sem complicação.</span><button data-act="account">Acessar carteira</button></footer></div>`;
 }
+function homePage(cs,fin){
+ const expected=cs.reduce((n,c)=>n+c.amount,0), received=fin.income, pending=Math.max(0,expected-received), paid=cs.filter(c=>c.paid).length;
+ const overdue=cs.filter(c=>c.status==='Em atraso'), upcoming=cs.filter(c=>c.status==='A vencer');
+ const now=today(), limit=shift(now.slice(0,7),0)+'-31';
+ const nextJobs=db.jobs.filter(j=>!j.done&&j.date>=now&&j.date<=limit).slice(0,3);
+ const pct=expected?Math.min(100,Math.round(received/expected*100)):0;
+ const attention=[...overdue.slice(0,3).map(c=>'<button class="home-attention-row" data-act="pay|'+enc(c.key)+'"><span class="home-attention-icon home-attention-danger">!</span><span><b>'+enc(c.person.name)+'</b><small>'+enc(c.property.name)+' · '+Math.max(1,Math.ceil((Date.now()-new Date(c.due+'T12:00:00'))/86400000))+' dias</small></span><strong>'+money(c.amount)+'</strong></button>'),...nextJobs.map(j=>'<a class="home-attention-row" href="#Manutenções"><span class="home-attention-icon home-attention-ok">⌕</span><span><b>'+enc(j.name)+'</b><small>'+enc(pname(j.property))+' · '+date(j.date)+'</small></span><em>Agendada</em></a>')].slice(0,3).join('');
+ return '<div class="home-top"><a class="home-logo" href="#Painel"><img src="/logotipo-cor.svg" alt="AlugaFácil"></a>'+monthPick()+'</div><div class="home-greeting"><h1>'+(['Bom dia','Boa tarde','Boa noite'][new Date().getHours()<12?0:new Date().getHours()<18?1:2])+'</h1><p>Veja o que pede sua atenção hoje.</p></div><section class="home-received"><span>Recebido em '+monthName(month)+'</span><div><strong>'+money(received)+'</strong><small>de '+money(expected)+'</small></div><div class="home-progress"><i style="width:'+pct+'%"></i></div><div class="home-received-foot"><span>'+paid+' de '+cs.length+' aluguéis pagos</span><span>Faltam '+money(pending)+'</span></div></section><div class="home-summary"><a href="#Cobranças"><span>● Em atraso</span><strong>'+money(overdue.reduce((n,c)=>n+c.amount,0))+'</strong><small>'+overdue.length+' cobranças</small></a><a href="#Cobranças"><span>● A vencer</span><strong>'+money(upcoming.reduce((n,c)=>n+c.amount,0))+'</strong><small>'+upcoming.length+' cobrança'+(upcoming.length===1?'':'s')+(upcoming[0]?' · dia '+upcoming[0].due.slice(-2):'')+'</small></a></div><section class="home-attention"><div class="home-section-head"><h2>Precisa de atenção</h2><a href="#Cobranças">Ver cobranças</a></div><div class="home-attention-list">'+(attention||'<p class="empty">Nenhuma pendência para os próximos dias.</p>')+'</div></section>';
+}
 function render(){
  if(entry==='landing'){renderLandingV2();return}
  document.body.classList.remove('landing');
@@ -105,6 +114,7 @@ function render(){
  $('#crumb').textContent=page;$('#nav').innerHTML=pages.map((p,i)=>'<a href="#'+p+'" class="'+(page===p?'active':'')+'">'+icon(i)+p+'</a>').join('');
  $('#switch').textContent=(wallet==='cloud'?onlineName:wallet==='demo'?'Demonstração':'Minha carteira local')+' ▾';
  const cs=charges(db,month),fin=cash(db,month),sum=list=>list.reduce((a,c)=>a+c.amount,0);
+ if(page==='Painel'){ $('#view').innerHTML=homePage(cs,fin); renderTabbar(page); return; }
  const meta={'Imóveis':['Novo imóvel','property','Sua carteira de casas, apartamentos e galpões.'],'Locatários':['Novo locatário','person','Contatos dos responsáveis pelos contratos.'],'Contratos':['Novo contrato','lease','Vigência, valor mensal e vencimento de cada locação.'],'Cobranças':['','','Acompanhe os vencimentos e registre os recebimentos.'],'Manutenções':['Agendar manutenção','job','Serviços agendados para os seus imóveis.'],'Financeiro':['Lançar despesa','expense','Entradas e saídas pela data de movimentação.'],'Mais':['','','Acesso rápido à sua gestão.']};
  let h='';
  if(page==='Painel'){
