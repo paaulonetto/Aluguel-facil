@@ -384,6 +384,73 @@ dialog #close{min-width:44px;min-height:44px}
 .wk-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--af-texto-2)}
 .wk-legend span{display:inline-flex;align-items:center;gap:6px}
 .wk-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* Início · grade responsiva e indicadores (Claude · design/ux-ui) */
+.home{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+.home>*{margin:0}
+.home .wk{margin-top:0}
+.home-head{display:grid;grid-template-columns:auto auto;grid-template-areas:"logo month" "greet greet";align-items:center;justify-content:space-between;row-gap:14px}
+.home-head .home-logo{grid-area:logo}
+.home-head .home-greeting{grid-area:greet;margin:0}
+.home-head .home-greeting h1{margin:0}
+.home-head .home-greeting p{margin:4px 0 0}
+.home-head .filters{grid-area:month;margin:0;justify-self:end}
+.home-head .filters input{width:190px}
+.home-received,.home-summary{margin:0}
+.home-summary{align-self:stretch}
+.home-summary a{height:100%;box-sizing:border-box}
+.home-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.home-kpi{background:var(--af-branco);border-radius:var(--af-raio-cartao);padding:16px;display:flex;flex-direction:column;gap:4px}
+.home-kpi>span{font-size:13px;color:var(--af-texto-2)}
+.home-kpi strong{font:600 22px/1.2 var(--af-font-titulo);color:var(--af-tinta);white-space:nowrap}
+.home-kpi small{font-size:13px;color:var(--af-texto-2)}
+.home-kpi--bad strong{color:var(--af-atraso-txt)}
+.home-kpi--good strong{color:var(--af-pago-txt)}
+.home-kpi-bar{display:block;height:6px;border-radius:3px;background:var(--af-trilho);margin:4px 0 2px;overflow:hidden}
+.home-kpi-bar i{display:block;height:100%;border-radius:3px;background:var(--af-verde)}
+.home-attention-warn{background:#E6EAE8;color:var(--af-tinta)}
+.home-attention-job{background:#DCE8FB;color:#1D4ED8}
+.home-attention-row em{font-style:normal;font-size:12px;font-weight:600;color:var(--af-verde-texto);background:var(--af-verde-claro);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.home-card{background:var(--af-branco);border-radius:var(--af-raio-cartao);padding:16px;display:flex;flex-direction:column;gap:12px}
+.home-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.home-card-head h2{margin:0;font:600 18px/1.3 var(--af-font-titulo);color:var(--af-tinta)}
+.home-card-head a{display:inline-flex;align-items:center;min-height:44px;font-size:14px;font-weight:600;color:var(--af-verde-texto);text-decoration:none}
+.home-card-sub{margin:-8px 0 0;font-size:13px;color:var(--af-texto-2)}
+.home-card-empty{margin:0;font-size:14px;line-height:1.5;color:var(--af-texto-2)}
+.home-chart{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;height:160px;align-items:end;padding-top:6px}
+.home-chart-col{display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
+.home-chart-bars{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:4px;border-bottom:1px solid var(--af-divisor)}
+.home-chart-bars i{display:block;width:min(16px,40%);min-height:2px;border-radius:5px 5px 0 0}
+.home-chart-bars i.in,.home-legend i.in{background:var(--af-verde)}
+.home-chart-bars i.out,.home-legend i.out{background:#E8A58C}
+.home-chart-col span{font-size:12px;color:var(--af-texto-2)}
+.home-chart-col.is-current span{color:var(--af-tinta);font-weight:600}
+.home-legend{display:flex;gap:16px;font-size:12px;color:var(--af-texto-2)}
+.home-legend span{display:inline-flex;align-items:center;gap:6px}
+.home-legend i{display:block;width:10px;height:10px;border-radius:3px}
+.home-ending-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;padding:6px 4px;border-top:1px solid var(--af-divisor);text-decoration:none;color:var(--af-tinta)}
+.home-ending-row span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.home-ending-row b{font-size:15px;font-weight:600}
+.home-ending-row small{font-size:13px;color:var(--af-texto-2)}
+.home-ending-row em{font-style:normal;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:#E6EAE8;white-space:nowrap}
+.home-ending-row em.is-urgent{background:var(--af-atraso-bg);color:var(--af-atraso-txt)}
+
+@media(min-width:600px){.home-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(min-width:900px){
+ main #view.view-wide{max-width:1680px;padding:24px clamp(20px,3vw,40px) 48px}
+ .home{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+ .home-head{grid-column:1/-1;grid-template-columns:1fr auto;grid-template-areas:"greet month"}
+ .home-head .home-logo{display:none}
+ .home-kpis{grid-column:1/-1;gap:16px}
+ .home-received{padding:24px}
+ .home-summary a{display:flex;flex-direction:column;justify-content:center}
+}
+@media(min-width:1200px){
+ .home{grid-template-columns:minmax(0,7fr) minmax(0,5fr)}
+ .home-kpi{padding:18px 20px}
+ .home-kpi strong{font-size:26px}
+ .home-chart{height:200px}
+}
 </style>
   <link rel="icon" href="/favicon.ico" sizes="32x32">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -708,13 +775,52 @@ document.addEventListener('click',e=>{
  $('#home-week').outerHTML=weekCard();$('#home-week '+focus)?.focus();
 });
 function homePage(cs,fin){
- const expected=cs.reduce((n,c)=>n+c.amount,0), received=fin.income, pending=Math.max(0,expected-received), paid=cs.filter(c=>c.paid).length;
+ const sumAmt=list=>list.reduce((n,c)=>n+c.amount,0);
+ const expected=sumAmt(cs), received=fin.income, pending=Math.max(0,expected-received), paid=cs.filter(c=>c.paid).length;
  const overdue=cs.filter(c=>c.status==='Em atraso'), upcoming=cs.filter(c=>c.status==='A vencer');
  const now=today(), limit=shift(now.slice(0,7),0)+'-31';
  const nextJobs=db.jobs.filter(j=>!j.done&&j.date>=now&&j.date<=limit).slice(0,3);
  const pct=expected?Math.min(100,Math.round(received/expected*100)):0;
- const attention=[...overdue.slice(0,3).map(c=>'<button class="home-attention-row" data-act="pay|'+enc(c.key)+'"><span class="home-attention-icon home-attention-danger">!</span><span><b>'+enc(c.person.name)+'</b><small>'+enc(c.property.name)+' · '+Math.max(1,Math.ceil((Date.now()-new Date(c.due+'T12:00:00'))/86400000))+' dias</small></span><strong>'+money(c.amount)+'</strong></button>'),...nextJobs.map(j=>'<a class="home-attention-row" href="#Manutenções"><span class="home-attention-icon home-attention-ok">⌕</span><span><b>'+enc(j.name)+'</b><small>'+enc(pname(j.property))+' · '+date(j.date)+'</small></span><em>Agendada</em></a>')].slice(0,3).join('');
- return '<div class="home-top"><a class="home-logo" href="#Painel"><img src="/logotipo-cor.svg" alt="AlugaFácil"></a>'+monthPick()+'</div><div class="home-greeting"><h1>'+(['Bom dia','Boa tarde','Boa noite'][new Date().getHours()<12?0:new Date().getHours()<18?1:2])+'</h1><p>Veja o que pede sua atenção hoje.</p></div><section class="home-received"><span>Recebido em '+monthName(month)+'</span><div><strong>'+money(received)+'</strong><small>de '+money(expected)+'</small></div><div class="home-progress"><i style="width:'+pct+'%"></i></div><div class="home-received-foot"><span>'+paid+' de '+cs.length+' aluguéis pagos</span><span>Faltam '+money(pending)+'</span></div></section><div class="home-summary"><a href="#Cobranças"><span>● Em atraso</span><strong>'+money(overdue.reduce((n,c)=>n+c.amount,0))+'</strong><small>'+overdue.length+' cobranças</small></a><a href="#Cobranças"><span>● A vencer</span><strong>'+money(upcoming.reduce((n,c)=>n+c.amount,0))+'</strong><small>'+upcoming.length+' cobrança'+(upcoming.length===1?'':'s')+(upcoming[0]?' · dia '+upcoming[0].due.slice(-2):'')+'</small></a></div>'+weekCard()+'<section class="home-attention"><div class="home-section-head"><h2>Precisa de atenção</h2><a href="#Cobranças">Ver cobranças</a></div><div class="home-attention-list">'+(attention||'<p class="empty">Nenhuma pendência para os próximos dias.</p>')+'</div></section>';
+ // Indicadores calculados com dados que o app já guarda.
+ const active=db.leases.filter(l=>l.start<=now&&l.end>=now), busy=new Set(active.map(l=>l.property));
+ const total=db.properties.length, occupied=db.properties.filter(p=>busy.has(p.id)).length, occPct=total?Math.round(occupied/total*100):0;
+ const overdueAmt=sumAmt(overdue), delinq=expected?Math.round(overdueAmt/expected*100):0;
+ const balance=fin.income-fin.cost, avgRent=active.length?Math.round(sumAmt(active)/active.length):0;
+ const daysTo=d=>Math.round((new Date(d+'T12:00:00Z')-new Date(now+'T12:00:00Z'))/86400000);
+ const leaseName=l=>(db.properties.find(p=>p.id===l.property)?.name||'Imóvel')+' · '+(db.people.find(p=>p.id===l.person)?.name||'Locatário');
+ const ending=db.leases.filter(l=>l.end>=now&&daysTo(l.end)<=90).sort((a,b)=>a.end.localeCompare(b.end));
+ const nextEnd=db.leases.filter(l=>l.end>=now).sort((a,b)=>a.end.localeCompare(b.end))[0];
+ const endingSoon=ending.filter(l=>daysTo(l.end)<=60);
+ const attention=[
+  ...overdue.slice(0,3).map(c=>'<button class="home-attention-row" data-act="pay|'+enc(c.key)+'"><span class="home-attention-icon home-attention-danger">!</span><span><b>'+enc(c.person.name)+'</b><small>'+enc(c.property.name)+' · '+Math.max(1,Math.ceil((Date.now()-new Date(c.due+'T12:00:00'))/86400000))+' dias de atraso</small></span><strong>'+money(c.amount)+'</strong></button>'),
+  ...endingSoon.map(l=>'<a class="home-attention-row" href="#Contratos"><span class="home-attention-icon home-attention-warn" aria-hidden="true">'+wkIcon.end+'</span><span><b>Contrato termina em '+daysTo(l.end)+' dias</b><small>'+enc(leaseName(l))+'</small></span><em>Renovar</em></a>'),
+  ...nextJobs.map(j=>'<a class="home-attention-row" href="#Manutenções"><span class="home-attention-icon home-attention-job" aria-hidden="true">'+wkIcon.job+'</span><span><b>'+enc(j.name)+'</b><small>'+enc(pname(j.property))+' · '+date(j.date)+'</small></span><em>Agendada</em></a>')
+ ].slice(0,4).join('');
+ // Últimos 6 meses: recebido x despesas
+ const series=Array.from({length:6},(_,i)=>shift(month,i-5)).map(m=>({m,...cash(db,m)}));
+ const top=Math.max(1,...series.flatMap(s=>[s.income,s.cost]));
+ const mName=m=>wkMonths[+m.slice(5)-1];
+ const chart='<div class="home-chart" role="img" aria-label="Recebido e despesas nos últimos 6 meses: '+series.map(s=>mName(s.m)+' recebido '+money(s.income)+', despesas '+money(s.cost)).join('; ')+'">'+series.map(s=>'<div class="home-chart-col'+(s.m===month?' is-current':'')+'"><div class="home-chart-bars"><i class="in" style="height:'+Math.round(s.income/top*100)+'%"></i><i class="out" style="height:'+Math.round(s.cost/top*100)+'%"></i></div><span>'+mName(s.m)+'</span></div>').join('')+'</div>';
+ const kpi=(label,value,note,extra='',tone='')=>'<div class="home-kpi'+(tone?' home-kpi--'+tone:'')+'"><span>'+label+'</span><strong>'+value+'</strong>'+extra+'<small>'+note+'</small></div>';
+ const hour=new Date().getHours();
+ return '<div class="home">'
+ +'<div class="home-head"><a class="home-logo" href="#Painel"><img src="/logotipo-cor.svg" alt="AlugaFácil"></a><div class="home-greeting"><h1>'+(['Bom dia','Boa tarde','Boa noite'][hour<12?0:hour<18?1:2])+'</h1><p>Veja o que pede sua atenção hoje.</p></div>'+monthPick()+'</div>'
+ +'<section class="home-received"><span>Recebido em '+monthName(month)+'</span><div><strong>'+money(received)+'</strong><small>de '+money(expected)+'</small></div><div class="home-progress"><i style="width:'+pct+'%"></i></div><div class="home-received-foot"><span>'+paid+' de '+cs.length+' aluguéis pagos</span><span>Faltam '+money(pending)+'</span></div></section>'
+ +'<div class="home-summary"><a href="#Cobranças"><span>● Em atraso</span><strong>'+money(overdueAmt)+'</strong><small>'+overdue.length+' cobrança'+(overdue.length===1?'':'s')+'</small></a><a href="#Cobranças"><span>● A vencer</span><strong>'+money(sumAmt(upcoming))+'</strong><small>'+upcoming.length+' cobrança'+(upcoming.length===1?'':'s')+(upcoming[0]?' · dia '+upcoming[0].due.slice(-2):'')+'</small></a></div>'
+ +'<section class="home-kpis" aria-label="Indicadores da carteira">'
+ +kpi('Ocupação',occPct+'%',occupied+' de '+total+' imóve'+(total===1?'l':'is')+' alugado'+(occupied===1?'':'s'),'<span class="home-kpi-bar"><i style="width:'+occPct+'%"></i></span>')
+ +kpi('Inadimplência',delinq+'%',money(overdueAmt)+' do previsto no mês','',delinq>0?'bad':'good')
+ +kpi('Saldo do mês',money(balance),'entradas menos saídas','',balance<0?'bad':'')
+ +kpi('Aluguel médio',money(avgRent),active.length+' contrato'+(active.length===1?'':'s')+' ativo'+(active.length===1?'':'s'))
+ +'</section>'
+ +weekCard()
+ +'<section class="home-attention"><div class="home-section-head"><h2>Precisa de atenção</h2><a href="#Cobranças">Ver cobranças</a></div><div class="home-attention-list">'+(attention||'<p class="empty">Nenhuma pendência para os próximos dias.</p>')+'</div></section>'
+ +'<section class="home-card home-flow" aria-labelledby="home-flow-t"><div class="home-card-head"><h2 id="home-flow-t">Últimos 6 meses</h2><a href="#Financeiro">Financeiro</a></div>'+chart+'<div class="home-legend"><span><i class="in"></i>Recebido</span><span><i class="out"></i>Despesas</span></div></section>'
+ +'<section class="home-card home-ending" aria-labelledby="home-ending-t"><div class="home-card-head"><h2 id="home-ending-t">Contratos que terminam</h2><a href="#Contratos">Contratos</a></div><p class="home-card-sub">Próximos 90 dias</p>'
+ +(ending.length?ending.slice(0,4).map(l=>'<a class="home-ending-row" href="#Contratos"><span><b>'+enc(leaseName(l))+'</b><small>termina em '+date(l.end)+'</small></span><em class="'+(daysTo(l.end)<=30?'is-urgent':'')+'">'+daysTo(l.end)+' dias</em></a>').join('')
+  :'<p class="home-card-empty">Nenhum contrato termina nos próximos 90 dias.'+(nextEnd?' O próximo é '+enc(leaseName(nextEnd))+', em '+date(nextEnd.end)+'.':'')+'</p>')
+ +'</section>'
+ +'</div>';
 }
 function render(){
  if(entry==='landing'){renderLandingV2();return}lpAnimate.stop?.();
@@ -723,7 +829,7 @@ function render(){
  $('#crumb').textContent=page;$('#nav').innerHTML=pages.map((p,i)=>'<a href="#'+p+'" class="'+(page===p?'active':'')+'">'+icon(i)+p+'</a>').join('');
  $('#switch').textContent=(wallet==='cloud'?onlineName:wallet==='demo'?'Demonstração':'Minha carteira local')+' ▾';
  const cs=charges(db,month),fin=cash(db,month),sum=list=>list.reduce((a,c)=>a+c.amount,0);
- if(page==='Painel'){ $('#view').innerHTML=homePage(cs,fin); renderTabbar(page); return; }
+ $('#view').classList.toggle('view-wide',page==='Painel');if(page==='Painel'){ $('#view').innerHTML=homePage(cs,fin); renderTabbar(page); return; }
  const meta={'Imóveis':['Novo imóvel','property','Sua carteira de casas, apartamentos e galpões.'],'Locatários':['Novo locatário','person','Contatos dos responsáveis pelos contratos.'],'Contratos':['Novo contrato','lease','Vigência, valor mensal e vencimento de cada locação.'],'Cobranças':['','','Acompanhe os vencimentos e registre os recebimentos.'],'Manutenções':['Agendar manutenção','job','Serviços agendados para os seus imóveis.'],'Financeiro':['Lançar despesa','expense','Entradas e saídas pela data de movimentação.'],'Mais':['','','Acesso rápido à sua gestão.']};
  let h='';
  if(page==='Painel'){
