@@ -36,3 +36,33 @@ Status: etapas 1 (tokens), 2 (barra inferior + Mais) e 3 (Início) aplicadas. Et
 
 ## Ordem sugerida
 A1 → A2 → A4 → A3 → M2 → M3 → M1 → M4 → M5 → acabamentos.
+
+---
+
+## Referência de mercado: o que observar num CRM imobiliário do nicho (25/11/2026)
+
+Observado em modo leitura numa conta vazia de um CRM imobiliário concorrente. **Não copiar layout, textos nem marca**, só a ideia por trás de cada item. Cada item diz se dá para fazer só no front (fase 1) ou se exige dado novo (fase 2/3, **hipótese a validar** com usuários).
+
+### Dá para fazer só no front (entra na fase 1)
+| Ideia | Onde no AlugaFácil | Por quê |
+|---|---|---|
+| **Contratos vencendo nos próximos 60 dias** dentro de "Precisa de atenção" | Início e Detalhe do contrato | A data de término já existe. Renovar no prazo é dor real de quem aluga. |
+| Nomear o atraso como **Inadimplência**, com valor e nº de contratos | Início / Cobranças | É o termo que locadores e administradoras usam. |
+| **Estados vazios que ensinam** ("Cadastre o primeiro imóvel para…", com botão) | Todas as listas | Carteira nova hoje vê listas em branco e não sabe por onde começar. |
+| Financeiro com alternância **Mês / Ano** e gráfico dos 12 meses | Financeiro | Os pagamentos e despesas já têm data. |
+| Agenda única de **vencimentos + manutenções** (visão lista, depois mês) | Nova aba ou dentro de Manutenções | Junta dados que já existem e mostra a semana do locador. |
+| Barra inferior com 5 itens e "Mais" | (já feito) | Confirma a escolha da etapa 2. |
+
+### Exige dado novo (fase 2, com aprovação)
+| Ideia | Dado novo |
+|---|---|
+| **Valores padrão da locação**: multa (ex.: 2%), juros ao mês (ex.: 1%), índice de reajuste, taxa de administração | Configuração por carteira; cálculo de multa e juros no Registrar pagamento |
+| **Garantia do contrato** (caução, fiador, seguro-fiança) e **seguro do imóvel com vencimento** | Campos no contrato |
+| **Proprietários** e **repasses** (quanto repassar a cada dono, já descontada a taxa) | Tabela de proprietários e de repasses; essencial para administradoras |
+| **Categorias de despesa** (condomínio, IPTU, manutenção…) e saldo inicial de caixa | Categoria no lançamento |
+| **Controle de chaves** (quem está com a chave de qual imóvel) | Registro simples de retirada/devolução |
+
+### Ideias maiores (fase 3, validar demanda antes)
+- **Vistoria de entrada e saída** com fotos por cômodo e laudo em PDF.
+- **Ajuda com obrigações fiscais** (ex.: DIMOB para pessoa jurídica, informe de aluguéis recebidos para pessoa física). Exige validação com contador antes de qualquer promessa.
+- **Cobrança digital** (boleto/Pix com aviso automático ao inquilino): envolve gateway de pagamento e custos, decisão do responsável.
