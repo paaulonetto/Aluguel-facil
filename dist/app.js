@@ -84,7 +84,7 @@ const phone=c.person.phone.replace(/\D/g,''),url='https://wa.me/'+(phone.length<
 return item(c.property.name,c.person.name+' · '+date(c.due),money(c.amount)+' '+badge(c.status),actions&&!c.paid?'<div class="actions">'+btn('pay|'+c.key,'Registrar pagamento')+(phone?'<a class="button" target="_blank" rel="noopener" href="'+enc(url)+'">WhatsApp</a>':'')+'</div>':c.paid?'Recebido em '+date(c.paid.date):'')}).join('')||empty('Nenhuma cobrança neste período.')}
 const sky='<svg class="sky" viewBox="0 0 330 150" preserveAspectRatio="xMaxYMax meet" fill="none" stroke="#95c7d0" aria-hidden="true"><defs><pattern id="win" width="14" height="14" patternUnits="userSpaceOnUse"><path d="M2 3h6v7H2z"/></pattern></defs><g transform="skewY(-8)"><path d="M14 190V104l40-12v98M54 92l17 8v90M76 190V52l57-16v154M133 36l23 12v142M166 190V88l45-14v116M211 74l22 10v106M240 190V28l58-15v177M298 13l24 11v166" fill="url(#win)"/></g></svg>';
 const lpCheck='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
-const lpImg=(name,big,small,alt,w,h,eager)=>'<span class="lp-frame" data-parallax><img src="/assets/img/'+name+'-'+big+'.webp" srcset="/assets/img/'+name+'-'+small+'.webp '+small+'w, /assets/img/'+name+'-'+big+'.webp '+big+'w" sizes="(max-width: 899px) 100vw, 50vw" width="'+w+'" height="'+h+'" alt="'+alt+'"'+(eager?' fetchpriority="high"':' loading="lazy" decoding="async"')+'></span>';
+const lpImg=(name,big,small,alt,w,h,eager,mid)=>'<span class="lp-frame" data-parallax><img src="/assets/img/'+name+'-'+(mid||big)+'.webp" srcset="/assets/img/'+name+'-'+small+'.webp '+small+'w, '+(mid?'/assets/img/'+name+'-'+mid+'.webp '+mid+'w, ':'')+'/assets/img/'+name+'-'+big+'.webp '+big+'w" sizes="(max-width: 899px) 100vw, 50vw" width="'+w+'" height="'+h+'" alt="'+alt+'"'+(eager?' fetchpriority="high"':' loading="lazy" decoding="async"')+'></span>';
 const lpList=items=>'<ul class="lp-list">'+items.map((t,i)=>'<li style="--i:'+i+'">'+lpCheck+'<span>'+t+'</span></li>').join('')+'</ul>';
 const lpMarqueeItems=['Contratos e vigências','Cobranças do mês','Pagamento em um toque','Lembrete por WhatsApp','Manutenções agendadas','Entradas e saídas','Exporta para planilha','Carteira online'];
 function renderLandingV2(){
@@ -108,7 +108,7 @@ function renderLandingV2(){
     <ul class="lp-proof" data-reveal style="--d:750ms"><li>${lpCheck}Funciona no celular</li><li>${lpCheck}Carteira online ou no aparelho</li><li>${lpCheck}Exporta para planilha</li></ul>
    </div>
    <figure class="lp-media lp-media--hero" data-reveal="curtain" style="--d:150ms">
-    ${lpImg('hero-celular',1600,900,'Homem sentado no sofá de casa conferindo o celular',1600,1066,true)}
+    ${lpImg('hero-celular',1600,900,'Homem sentado no sofá de casa conferindo o celular',1600,1066,true,1200)}
     <div class="lp-float lp-float--hero" aria-hidden="true">
      <span class="lp-float-label">Recebido em novembro</span>
      <strong><span data-count="185000">R$ 1.850,00</span> <small>de R$ 9.950,00</small></strong>
@@ -167,7 +167,7 @@ function renderLandingV2(){
   </section>
 
   <section class="lp-story" aria-labelledby="lp-story-t">
-   <figure class="lp-story-media lp-media" data-reveal="curtain">${lpImg('sala-clara',1600,900,'Sala de estar clara e organizada',1600,1067,false)}</figure>
+   <figure class="lp-story-media lp-media" data-reveal="curtain">${lpImg('sala-clara',1600,900,'Sala de estar clara e organizada',1600,1067,false,1200)}</figure>
    <div class="lp-story-card" data-reveal="right" style="--d:200ms">
     <h2 id="lp-story-t">Abra o app e saiba, em segundos:</h2>
     ${lpList(['o que vence nos próximos dias','quem está em atraso e quanto','quanto entrou e saiu no mês'])}
@@ -223,7 +223,7 @@ function lpAnimate(){
   for(const el of par){const r=el.getBoundingClientRect();if(r.bottom<-100||r.top>H+100)continue;const p=(r.top+r.height/2-H/2)/(H+r.height);el.style.setProperty('--py',(p*-56).toFixed(1)+'px')}};
  const catchUp=()=>{const H=innerHeight;for(const el of pending)if(el.getBoundingClientRect().top<H*.94){reveal(el);io.unobserve(el)}};
  const onScroll=()=>{catchUp();if(!raf)raf=requestAnimationFrame(frame)};
- addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',onScroll);frame();
+ addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',onScroll);requestAnimationFrame(frame);
  lpAnimate.stop=()=>{io.disconnect();removeEventListener('scroll',onScroll);removeEventListener('resize',onScroll);if(raf)cancelAnimationFrame(raf)};
 }
 function homePage(cs,fin){
