@@ -338,7 +338,7 @@ function render(){
  const [label,act,sub]=meta[page];h='<div class="row sectionhead"><div><h1>'+page+'</h1><p class="sub">'+sub+'</p></div>'+(act?btn(act,'＋ '+label,'primary'):'')+'</div>';
  if(page==='Imóveis')h+=propertyList();
  if(page==='Locatários')h+=personList();
- if(page==='Contratos')h+=panel('Locações',db.leases.map(l=>item(pname(l.property),person(l.person)+' · '+date(l.start)+' a '+date(l.end),money(l.amount),'Vencimento no dia '+l.day)).join('')||empty('O contrato vincula um imóvel a um locatário e gera as cobranças mensais.'));
+ if(page==='Contratos')h+=leaseList();
  if(page==='Cobranças')h+=monthPick()+'<label class="filters">Situação <select id="filter">'+['Todas','Em atraso','A vencer','Pago'].map(v=>'<option '+(filter===v?'selected':'')+'>'+v+'</option>').join('')+'</select></label>'+panel('Aluguéis de '+monthName(month),chargeRows(cs.filter(c=>filter==='Todas'||c.status===filter),true));
  if(page==='Manutenções')h+=panel('Agenda',db.jobs.slice().sort((a,b)=>Number(a.done)-Number(b.done)||a.date.localeCompare(b.date)).map(j=>item(j.name,pname(j.property)+' · '+date(j.date),badge(j.done?'Concluída':'Agendada'),j.done?'':btn('finish|'+j.id,'Concluir'))).join('')||empty('Nenhuma manutenção agendada.'));
  if(page==='Financeiro'){let moves=[...db.payments.map(p=>({...p,name:pname(db.leases.find(l=>l.id===p.key.split('/')[0])?.property),type:'Aluguel'})),...db.expenses.map(e=>({...e,amount:-e.amount,type:'Despesa'}))].filter(x=>x.date.startsWith(month)).sort((a,b)=>b.date.localeCompare(a.date));
@@ -455,7 +455,6 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',e=>{
  const t=e.target;
- if(action==='lease'&&t.name==='property'){const p=db.properties.find(x=>x.id===t.value),am=$('#form [name=amount]');if(p?.rent&&am&&!am.value)am.value=(p.rent/100).toFixed(2)}
  if(!t.closest?.('.pf-step'))return;
  if(t.id==='pf-file'){pfPhoto(t.files[0]);t.value=''}
  if(t.name==='type'){const p=pfEl().querySelector('[name=purpose][value="'+(pfBusiness.includes(t.value)?'Comercial':'Residencial')+'"]');if(p)p.checked=true}
@@ -582,6 +581,102 @@ function personList(){
    +(wa?'<a class="button tl-wa" href="'+enc(wa+'?text='+encodeURIComponent('Olá, '+p.name.split(' ')[0]+'!'))+'" target="_blank" rel="noopener">Conversar no WhatsApp</a>':'')
    +'</article>'}).join('')+'</div>';
 }
+// Cadastro de contrato em 3 etapas: partes, prazo e valor, condições (Claude · design/ux-ui).
+const lfISO=d=>d.toISOString().slice(0,10);
+const lfLast=(y,m)=>new Date(Date.UTC(y,m,0)).getUTCDate();
+function lfEnd(start,n){const [y,m,d]=start.split('-').map(Number),t=new Date(Date.UTC(y,m-1+n,1));t.setUTCDate(Math.min(d,lfLast(t.getUTCFullYear(),t.getUTCMonth()+1)));t.setUTCDate(t.getUTCDate()-1);return lfISO(t)}
+function lfDues(start,end,day){const out=[];let mo=start.slice(0,7);for(let i=0;i<600&&mo<=end.slice(0,7);i++,mo=shift(mo,1)){const [y,m]=mo.split('-').map(Number),due=mo+'-'+String(Math.min(day,lfLast(y,m))).padStart(2,'0');if(due>=start&&due<=end)out.push(due)}return out}
+const lfMonths=(start,end)=>Math.max(0,Math.round((Date.parse(end)-Date.parse(start)+864e5)/(864e5*30.4375)));
+function leaseForm(){
+ pfStep=0;pfSeen=0;pfMax=2;pfSave='Salvar contrato';
+ const cloud=wallet==='cloud',now=today(),start=shift(current(),1)+'-01';
+ const busy=p=>db.leases.filter(l=>l.property===p.id&&l.end>=now).sort((a,b)=>b.end.localeCompare(a.end))[0];
+ const props=cloud?db.units.filter(u=>u.status==='available').map(u=>'<option value="'+enc(u.id)+'">'+enc(pname(u.property_id)+' · '+u.name)+'</option>').join('')
+  :db.properties.map(p=>{const b=busy(p);return '<option value="'+enc(p.id)+'">'+enc(p.name+(b?' · alugado até '+date(b.end):' · disponível'))+'</option>'}).join('');
+ const steps='<ol class="pf-steps">'+['Partes','Prazo e valor','Condições'].map((s,i)=>'<li><button type="button" data-pf-go="'+i+'"'+(i?' disabled':'')+' aria-current="'+(i?'false':'step')+'"><b>'+(i+1)+'</b><span>'+s+'</span></button></li>').join('')+'</ol>';
+ const parts='<fieldset class="pf-step" data-step="0"><legend>Quem aluga o quê</legend>'
+  +'<label class="pf-field"><span>'+(cloud?'Imóvel e unidade':'Imóvel')+'</span><select name="'+(cloud?'unit':'property')+'" required><option value="">Selecione o imóvel</option>'+props+'</select></label>'
+  +'<div class="lf-info" id="lf-prop" hidden></div>'
+  +'<label class="pf-field"><span>Locatário</span><select name="person" required><option value="">Selecione o locatário</option>'+db.people.map(p=>'<option value="'+enc(p.id)+'">'+enc(p.name)+'</option>').join('')+'</select><small>Não está na lista? Cadastre antes em Locatários.</small></label>'
+  +'<div class="lf-info" id="lf-person" hidden></div>'
+  +'</fieldset>';
+ const term='<fieldset class="pf-step" data-step="1" hidden><legend>Prazo e valor</legend>'
+  +'<div class="pf-field"><span>Duração</span>'+pfChips('dur',['12 meses','24 meses','30 meses','36 meses','Outro'],'12 meses',false,'Duração do contrato')+'</div>'
+  +'<div class="pf-row pf-two">'+pfField('Início','start','type="date" required value="'+start+'"')+pfField('Término','end','type="date" required value="'+lfEnd(start,12)+'"','<span id="lf-len"></span>')+'</div>'
+  +pfMoney('Aluguel mensal','amount',true,'<span id="lf-amount-h"></span>')
+  +pfField('Dia do vencimento','day','type="number" inputmode="numeric" required min="1" max="31" value="10"','<span id="lf-first"></span>','lf-day')
+  +'</fieldset>';
+ const cond='<fieldset class="pf-step" data-step="2" hidden><legend>Condições</legend>'
+  +'<div class="pf-field"><span>Reajuste anual'+pfOpt+'</span>'+pfChips('index',['IGP-M','IPCA','IVAR','Sem reajuste'],'',false,'Índice de reajuste')+'<small id="lf-index-h">O índice é combinado entre as partes e fica escrito no contrato.</small></div>'
+  +'<div class="pf-row pf-two">'+pfField('Multa por atraso (%)'+pfOpt,'fine','type="number" inputmode="decimal" min="0" max="100" step=".1" placeholder="Ex.: 2"')+pfField('Juros ao mês (%)'+pfOpt,'interest','type="number" inputmode="decimal" min="0" max="10" step=".1" placeholder="Ex.: 1"')+'</div>'
+  +'<div class="pf-field"><span>Garantia</span>'+pfChips('guarantee',tfGuarantees,'Sem garantia',false,'Garantia do contrato')+'<small id="lf-g-h"></small></div>'
+  +'<div class="tf-g" data-g="Caução" hidden>'+pfMoney('Valor da caução','gValue',false)+'</div>'
+  +'<label class="pf-field"><span>Observações'+pfOpt+'</span><textarea name="notes" rows="3" maxlength="500" placeholder="Ex.: pintura na entrega; chaves entregues em 2 vias"></textarea></label>'
+  +'<div class="pf-total lf-sum" aria-live="polite"><span>Resumo do contrato</span><div id="lf-sum"></div></div>'
+  +(cloud?'<p class="pf-note">Na carteira online, por enquanto ficam salvos imóvel, locatário, datas, valor e vencimento. Reajuste, multa, juros, garantia e observações ficam para a próxima atualização do banco.</p>':'')
+  +'</fieldset>';
+ return steps+parts+term+cond+'<div class="pf-foot"><button type="button" class="pf-back" data-pf-back hidden>Voltar</button><button class="primary pf-next">Continuar</button></div>';
+}
+function lfRefresh(){
+ const f=pfEl(),E=f.elements;if(!E.start||action!=='lease')return;
+ const cloud=wallet==='cloud',pid=cloud?db.units.find(u=>u.id===E.unit.value)?.property_id:E.property.value,p=db.properties.find(x=>x.id===pid),who=db.people.find(x=>x.id===E.person.value);
+ const pi=$('#lf-prop');pi.hidden=!p;if(p)pi.innerHTML='<b>'+enc(p.type||'Imóvel')+'</b> · '+enc(p.address||'')+(p.rent?'<br>Aluguel pretendido: '+money(p.rent):'');
+ const wi=$('#lf-person');wi.hidden=!who;if(who)wi.innerHTML=(who.phone?'WhatsApp '+enc(tfPhoneMask(who.phone)):'Sem telefone cadastrado')+(who.guarantee&&who.guarantee!=='Sem garantia'?' · Garantia no cadastro: '+enc(who.guarantee):'');
+ const s=E.start.value,e=E.end.value,day=+E.day.value,amt=pfCents(E.amount.value);
+ let err='';if(s&&e&&e<s)err='O término precisa ser depois do início.';
+ else if(!cloud&&p&&s&&e){const c=db.leases.find(l=>l.property===p.id&&l.start<=e&&l.end>=s);if(c)err='Este imóvel já tem contrato de '+date(c.start)+' a '+date(c.end)+'. Ajuste as datas.'}
+ E.end.setCustomValidity(err);
+ const n=s&&e&&e>=s?lfMonths(s,e):0;$('#lf-len').textContent=err||(n?n+' '+(n===1?'mês':'meses'):'');$('#lf-len').className=err?'lf-bad':'';
+ $('#lf-amount-h').textContent=p?.rent&&amt&&amt!==p.rent?'Aluguel pretendido do imóvel: '+money(p.rent):'';
+ const dues=s&&e&&day>=1&&day<=31&&!err?lfDues(s,e,day):[];
+ $('#lf-first').textContent=dues.length?'Primeira cobrança em '+date(dues[0])+(day>28?' · nos meses mais curtos, vence no último dia':''):'';
+ const idx=f.querySelector('[name=index]:checked')?.value,adj=s&&idx&&idx!=='Sem reajuste'?lfEnd(s,12):'';
+ $('#lf-index-h').textContent=adj?'Primeiro reajuste por '+idx+' em '+date(lfISO(new Date(Date.parse(adj)+864e5))).slice(3)+', no aniversário do contrato.':'O índice é combinado entre as partes e fica escrito no contrato.';
+ const g=f.querySelector('[name=guarantee]:checked')?.value,gv=pfCents(E.gValue?.value);
+ $('#lf-sum').innerHTML=(who&&p?'<p><b>'+enc(who.name)+'</b> aluga <b>'+enc(p.name)+'</b></p>':'<p>Escolha o imóvel e o locatário.</p>')
+  +(n?'<p>'+date(s)+' a '+date(e)+' · '+n+' '+(n===1?'mês':'meses')+'</p>':'')
+  +(amt?'<p><strong>'+money(amt)+'</strong>/mês'+(day?', todo dia '+day:'')+'</p>':'')
+  +(dues.length&&amt?'<p>'+dues.length+' cobranças · total de '+money(dues.length*amt)+'</p>':'')
+  +(g&&g!=='Sem garantia'?'<p>Garantia: '+enc(g)+(g==='Caução'&&gv?' de '+money(gv):'')+'</p>':'');
+}
+function lfData(f){
+ const g=n=>(f.get(n)||'').toString().trim(),gu=g('guarantee')||'Sem garantia',num=n=>g(n)===''?null:Number(g(n));
+ return {property:g('property'),unit:g('unit'),person:g('person'),start:g('start'),end:g('end'),amount:pfCents(g('amount')),day:Number(g('day')),months:lfMonths(g('start'),g('end')),
+  index:g('index'),fine:num('fine'),interest:num('interest'),guarantee:gu,gValue:gu==='Caução'?pfCents(g('gValue')):0,notes:g('notes')};
+}
+document.addEventListener('input',e=>{const t=e.target;if(action!=='lease'||!t.closest?.('.pf-step'))return;
+ if(t.name==='end'){const o=pfEl().querySelector('[name=dur][value=Outro]');if(o)o.checked=true}
+ if(t.name==='start')t.dataset.touched='1';
+ if(t.name==='start'){const d=pfEl().querySelector('[name=dur]:checked')?.value;if(d&&d!=='Outro'&&t.value)pfEl().elements.end.value=lfEnd(t.value,parseInt(d))}
+ lfRefresh()});
+document.addEventListener('change',e=>{const t=e.target;if(action!=='lease'||!t.closest?.('.pf-step'))return;const E=pfEl().elements;
+ if(t.name==='property'||t.name==='unit'){const pid=t.name==='unit'?db.units.find(u=>u.id===t.value)?.property_id:t.value,p=db.properties.find(x=>x.id===pid);if(p?.rent&&(!E.amount.value||E.amount.dataset.auto)){E.amount.value=(p.rent/100).toFixed(2);E.amount.dataset.auto='1'}
+  const last=p&&db.leases.filter(l=>l.property===p.id).sort((a,b)=>b.end.localeCompare(a.end))[0];
+  if(last&&!E.start.dataset.touched&&last.end>=E.start.value){E.start.value=lfISO(new Date(Date.parse(last.end)+864e5));const d=pfEl().querySelector('[name=dur]:checked')?.value;if(d&&d!=='Outro')E.end.value=lfEnd(E.start.value,parseInt(d))}}
+ if(t.name==='amount')delete t.dataset.auto;
+ if(t.name==='person'){const w=db.people.find(x=>x.id===t.value),r=w?.guarantee&&pfEl().querySelector('[name=guarantee][value="'+w.guarantee+'"]');if(r){r.checked=true;tfGuarantee(w.guarantee);if(w.gValue)E.gValue.value=(w.gValue/100).toFixed(2)}}
+ if(t.name==='dur'&&t.value!=='Outro'&&E.start.value)E.end.value=lfEnd(E.start.value,parseInt(t.value));
+ if(t.name==='dur'&&t.value==='Outro')E.end.focus();
+ if(t.name==='guarantee')tfGuarantee(t.value);
+ lfRefresh()});
+// Lista de contratos em cartões: vigência, situação do mês e reajuste.
+function leaseList(){
+ if(!db.leases.length)return panel('Seus contratos',empty('O contrato vincula um imóvel a um locatário e gera as cobranças mensais.'));
+ const now=today(),cs=charges(db,month),days=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5);
+ const order=l=>l.end<now?2:l.start>now?1:0;
+ return '<div class="lc-grid">'+db.leases.slice().sort((a,b)=>order(a)-order(b)||a.end.localeCompare(b.end)).map(l=>{
+  const p=db.properties.find(x=>x.id===l.property),who=db.people.find(x=>x.id===l.person),left=days(now,l.end);
+  const st=l.end<now?['is-none','Encerrado']:l.start>now?['is-soon','Começa em '+date(l.start)]:left<=60?['is-warn','Termina em '+left+' dia'+(left===1?'':'s')]:['is-ok','Vigente'];
+  const total=Math.max(1,days(l.start,l.end)),pct=Math.min(100,Math.max(0,Math.round(days(l.start,now)/total*100)));
+  const n=lfMonths(l.start,l.end),cur=Math.min(n,Math.max(0,lfMonths(l.start,now)));
+  const c=cs.find(x=>x.id===l.id),mc=c?c.paid?['is-ok','Pago em '+date(c.paid.date)]:c.status==='Em atraso'?['is-late','Em atraso desde '+date(c.due)]:['is-soon','Vence em '+date(c.due)]:null;
+  const rows=[['Locatário',enc(who?.name||'Locatário')],['Vigência',date(l.start)+' a '+date(l.end)],['Vencimento','Todo dia '+l.day],l.index&&l.index!=='Sem reajuste'?['Reajuste',enc(l.index)+' · '+date(lfISO(new Date(Date.parse(lfEnd(l.start,12))+864e5))).slice(3)]:null,l.guarantee&&l.guarantee!=='Sem garantia'?['Garantia',enc(l.guarantee)+(l.gValue?' · '+money(l.gValue):'')]:null].filter(Boolean);
+  return '<article class="lc-card"><div class="lc-head"><div><h3>'+enc(p?.name||'Imóvel')+'</h3><strong>'+money(l.amount)+'<small>/mês</small></strong></div><span class="tl-st '+st[0]+'">'+st[1]+'</span></div>'
+   +(st[1]==='Encerrado'||l.start>now?'':'<div class="lc-bar" role="img" aria-label="Mês '+cur+' de '+n+'"><span style="width:'+pct+'%"></span></div><small class="lc-bar-l">Mês '+cur+' de '+n+'</small>')
+   +'<dl>'+rows.map(([k,v])=>'<div><dt>'+k+'</dt><dd>'+v+'</dd></div>').join('')+'</dl>'
+   +(mc?'<p class="lc-month '+mc[0]+'"><span>'+monthName(month).replace(/^./,c=>c.toUpperCase())+'</span>'+mc[1]+'</p>':'')
+   +'</article>'}).join('')+'</div>';
+}
 function open(act){action=act;const [type,id]=act.split('|');let title,fields;
  if(type==='demoEntry'){entry='app';wallet='demo';read();render();return}
  if(type==='logout'){if($('dialog').open)$('dialog').close();remember(null);tenants=[];walletChange('demo');toast('Sessão encerrada neste navegador.');return}
@@ -594,12 +689,12 @@ function open(act){action=act;const [type,id]=act.split('|');let title,fields;
  if(type==='wallet'){title='Escolher carteira';fields=select('Carteira','wallet',[{id:'cloud',name:'Carteira online (Supabase)'},{id:'real',name:'Minha carteira local'},{id:'demo',name:'Demonstração'}])+'<small>Use a carteira online para acessar seus dados em outros dispositivos.</small>'}
  if(type==='property'){title='Novo imóvel';fields=propertyForm()}
  if(type==='person'){title='Novo locatário';fields=tenantForm()}
- if(type==='lease'){if(!db.people.length||!db.properties.length)return toast('Cadastre pelo menos um imóvel e um locatário.');title='Novo contrato';fields=(wallet==='cloud'?select('Imóvel e unidade','unit',db.units.filter(u=>u.status==='available').map(u=>({id:u.id,name:pname(u.property_id)+' · '+u.name}))):select('Imóvel','property',db.properties))+select('Locatário','person',db.people)+input('Início','start','date')+input('Término','end','date')+amount()+input('Dia do vencimento','day','number','min="1" max="31"')+'<small>A primeira cobrança vence no primeiro dia de vencimento dentro da vigência.</small>'}
+ if(type==='lease'){if(!db.people.length||!db.properties.length)return toast('Cadastre pelo menos um imóvel e um locatário.');title='Novo contrato';fields=leaseForm()}
  if(type==='expense'){title='Lançar despesa';fields=input('Descrição','name')+amount()+input('Data do pagamento','date','date','value="'+today()+'" max="'+today()+'"')}
  if(type==='job'){if(!db.properties.length)return toast('Cadastre um imóvel para agendar o serviço.');title='Agendar manutenção';fields=select('Imóvel','property',db.properties)+input('Serviço','name')+input('Data agendada','date','date')}
  if(type==='finish'){title='Concluir manutenção';fields='<p>'+enc(db.jobs.find(j=>j.id===id).name)+'</p><label>Custo pago (R$)<input required name="amount" type="number" step=".01" min="0" max="999999999" value="0"></label>'+input('Data de conclusão','date','date','max="'+today()+'" value="'+today()+'"')}
  if(type==='pay'){const c=charges(db,month).find(x=>x.key===id);if(!c||c.paid)return;title='Registrar pagamento';fields='<p>'+enc(c.person.name)+' · '+enc(c.property.name)+'<br><strong>'+money(c.amount)+'</strong></p>'+input('Data do recebimento','date','date','value="'+today()+'" max="'+today()+'"')}
- $('#formTitle').textContent=title;$('#fields').innerHTML=fields;$('#error').textContent='';const wide=type==='property'||type==='person';$('#form > .primary').hidden=type==='account'&&!!auth||wide;$('#form').noValidate=wide;$('dialog').classList.toggle('dlg-wide',wide);$('#form > .primary').textContent=type==='account'?'Entrar':'Salvar';if(!$('dialog').open)$('dialog').showModal();if(wide)pfGo(0);
+ $('#formTitle').textContent=title;$('#fields').innerHTML=fields;$('#error').textContent='';const wide=type==='property'||type==='person'||type==='lease';$('#form > .primary').hidden=type==='account'&&!!auth||wide;$('#form').noValidate=wide;$('dialog').classList.toggle('dlg-wide',wide);$('#form > .primary').textContent=type==='account'?'Entrar':'Salvar';if(!$('dialog').open)$('dialog').showModal();if(wide)pfGo(0);if(type==='lease')lfRefresh();
 }
 async function showTenants(){
  tenants=await onlineTenants();
@@ -613,12 +708,16 @@ async function activate(member){
  sessionStorage.setItem('af.activeTenant',tenantId);$('#wallet').value='cloud';$('dialog').close();render();
 }
 async function refreshOnline(){const id=tenantId;const data=await loadOnline(id);if(wallet==='cloud'&&tenantId===id){db=data;render()}}
-$('#form').onsubmit=async e=>{e.preventDefault();if(busy)return;if(action==='property'||action==='person'){if(pfStep<pfMax){if(pfCheck(pfStep))pfGo(pfStep+1);return}for(let i=0;i<=pfMax;i++)if(!pfCheck(i))return}busy=true;$('#form .primary').disabled=true;const f=Object.fromEntries(new FormData(e.target)),[type,id]=action.split('|');try{
+$('#form').onsubmit=async e=>{e.preventDefault();if(busy)return;if(action==='property'||action==='person'||action==='lease'){if(pfStep<pfMax){if(pfCheck(pfStep))pfGo(pfStep+1);return}for(let i=0;i<=pfMax;i++)if(!pfCheck(i))return}busy=true;$('#form .primary').disabled=true;const f=Object.fromEntries(new FormData(e.target)),[type,id]=action.split('|');try{
  if(type==='account'){if(!auth)await login(f.email.trim(),f.password);$('#fields').querySelector('[name=password]')?.remove();await showTenants();return}
  if(type==='tenant'){await activate(tenants.find(m=>m.tenant_id===f.tenant));return}
  if(type==='property'){const p=pfData(new FormData(e.target));
   if(wallet==='cloud'){await writeOnline(tenantId,type,id,p,db,month);$('dialog').close();try{await refreshOnline();toast('Imóvel salvo no Supabase.')}catch{toast('Salvo no Supabase. Clique em Atualizar para recarregar.')}return}
   db.properties.push({...p,id:crypto.randomUUID()});save();$('dialog').close();render();toast('Imóvel cadastrado.');return}
+ if(type==='lease'){const p=lfData(new FormData(e.target));
+  if(wallet==='cloud'){await writeOnline(tenantId,type,id,p,db,month);$('dialog').close();try{await refreshOnline();toast('Contrato salvo no Supabase.')}catch{toast('Salvo no Supabase. Clique em Atualizar para recarregar.')}return}
+  if(p.end<p.start)throw Error('O término deve ser igual ou posterior ao início.');if(db.leases.some(l=>l.property===p.property&&l.start<=p.end&&l.end>=p.start))throw Error('Este imóvel já tem contrato nesse período.');
+  const {unit,...row}=p;db.leases.push({...row,id:crypto.randomUUID()});save();$('dialog').close();render();toast('Contrato cadastrado.');return}
  if(type==='person'){const p=tfData(new FormData(e.target));
   if(wallet==='cloud'){await writeOnline(tenantId,type,id,p,db,month);$('dialog').close();try{await refreshOnline();toast('Locatário salvo no Supabase.')}catch{toast('Salvo no Supabase. Clique em Atualizar para recarregar.')}return}
   db.people.push({...p,id:crypto.randomUUID()});save();$('dialog').close();render();toast('Locatário cadastrado.');return}

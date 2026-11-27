@@ -38,3 +38,15 @@ Na carteira online continua indo só `name` e `phone` para `renters`. Proposta p
 1. Colunas em `public.renters`: `kind text check in ('PF','PJ')`, `doc text`, `birth date`, `marital text`, `rg text`, `job text`, `rep text`, `income_cents bigint`, `email text`, `contact_pref text`, `emergency_name text`, `emergency_phone text`, endereço (mesmas colunas do imóvel), `notes text`.
 2. Garantia: tabela `renter_guarantees` (ou no contrato, que é onde juridicamente ela pertence) com `type`, `value_cents`, `guarantor_name`, `guarantor_doc`, `guarantor_phone`, `policy_ref`.
 3. **CPF/CNPJ e dados do fiador são dados pessoais (LGPD)**: RLS por tenant, nada em logs, mostrar mascarado na interface (a lista já mostra `***.456.789-**`).
+
+---
+
+# Cadastro de contrato em 3 etapas (27/11/2026)
+
+| Etapa | Campos |
+|---|---|
+| Partes | imóvel* (mostra "alugado até" ou "disponível"; na carteira online, unidade disponível), locatário* (puxa a garantia do cadastro) |
+| Prazo e valor | duração (12/24/30/36 meses ou outro), início*, término* calculado, aluguel* (vem do aluguel pretendido), dia do vencimento* com aviso da primeira cobrança; bloqueia término antes do início e sobreposição com outro contrato do mesmo imóvel |
+| Condições | reajuste (IGP-M, IPCA, IVAR, sem reajuste) com data do primeiro reajuste, multa %, juros % ao mês, garantia (+ valor da caução), observações, resumo com total do contrato |
+
+Na carteira online continuam indo só os campos atuais de `rental_contracts`. Proposta para o Codex (hipótese, precisa de aprovação): colunas `adjustment_index text`, `late_fee_pct numeric(5,2)`, `interest_month_pct numeric(5,2)`, `guarantee_type text`, `guarantee_cents bigint`, `notes text` em `rental_contracts` (a garantia pertence ao contrato; o cadastro do locatário só sugere), e validação no servidor de sobreposição de vigência por unidade (`exclude using gist` com `daterange`).
