@@ -326,7 +326,7 @@ function render(){
  $('#crumb').textContent=page;$('#nav').innerHTML=pages.map((p,i)=>'<a href="#'+p+'" class="'+(page===p?'active':'')+'">'+icon(i)+p+'</a>').join('');
  $('#switch').textContent=(wallet==='cloud'?onlineName:wallet==='demo'?'Demonstração':'Minha carteira local')+' ▾';
  const cs=charges(db,month),fin=cash(db,month),sum=list=>list.reduce((a,c)=>a+c.amount,0);
- $('#view').classList.toggle('view-wide',page==='Painel');if(page==='Painel'){ $('#view').innerHTML=homePage(cs,fin); renderTabbar(page); return; }
+ $('#view').classList.toggle('view-wide',['Painel','Imóveis','Locatários','Contratos'].includes(page));if(page!==ltPage){ltPage=page;ltQ='';ltSt='Todos'}if(page==='Painel'){ $('#view').innerHTML=homePage(cs,fin); renderTabbar(page); return; }
  const meta={'Imóveis':['Novo imóvel','property','Sua carteira de casas, apartamentos e galpões.'],'Locatários':['Novo locatário','person','Contatos dos responsáveis pelos contratos.'],'Contratos':['Novo contrato','lease','Vigência, valor mensal e vencimento de cada locação.'],'Cobranças':['','','Acompanhe os vencimentos e registre os recebimentos.'],'Manutenções':['Agendar manutenção','job','Serviços agendados para os seus imóveis.'],'Financeiro':['Lançar despesa','expense','Entradas e saídas pela data de movimentação.'],'Mais':['','','Acesso rápido à sua gestão.']};
  let h='';
  if(page==='Painel'){
@@ -345,7 +345,7 @@ function render(){
  h+=monthPick()+'<div class="cards">'+card('Entradas',money(fin.income),4)+card('Saídas',money(fin.cost),6)+card('Saldo do mês',money(fin.income-fin.cost),6)+'</div>'+panel('Movimentações',moves.map(x=>item(x.name,date(x.date)+' · '+x.type,money(x.amount))).join('')||empty('Nenhuma movimentação no mês.'),btn('exportFinance','Exportar CSV'))}
  }
  if(wallet==='cloud')h='<div class="row"><strong>Carteira online · '+enc(onlineName)+'</strong><div class="actions">'+btn('refresh','Atualizar')+btn('logout','Sair da conta')+'</div></div>'+h;
- $('#view').innerHTML=h;renderTabbar(page);
+ $('#view').innerHTML=h;ltApply();renderTabbar(page);
 }
 const input=(label,name,type='text',attrs='')=>'<label>'+label+'<input required name="'+name+'" type="'+type+'" '+attrs+'></label>';
 const select=(label,name,items)=>'<label>'+label+'<select required name="'+name+'"><option value="">Selecione</option>'+items.map(x=>'<option value="'+enc(x.id)+'">'+enc(x.name)+'</option>').join('')+'</select></label>';
@@ -468,14 +468,31 @@ document.addEventListener('click',e=>{
  if(back)pfGo(pfStep-1);
  if(rm){pfEl().elements.photo.value='';$('#pf-photo').classList.remove('has-photo');$('#pf-photo .pf-photo-prev')?.remove();$('#pf-photo .pf-photo-add').focus()}
 });
+// Barra das telas de cadastro: indicadores, busca e filtro por situação (Claude · design/ux-ui).
+let ltQ='',ltSt='Todos',ltPage='';
+const ltNorm=v=>String(v||'').toLowerCase().normalize('NFD').replace(/\p{M}/gu,'');
+function ltTools(kpis,chips,ph){
+ return '<section class="home-kpis lt-kpis" aria-label="Indicadores">'+kpis.map(([label,val,hint,mod,bar])=>'<div class="home-kpi'+(mod?' home-kpi--'+mod:'')+'"><span>'+label+'</span><strong>'+val+'</strong>'+(bar!=null?'<span class="home-kpi-bar" aria-hidden="true"><i style="width:'+bar+'%"></i></span>':'')+(hint?'<small>'+hint+'</small>':'')+'</div>').join('')+'</section>'
+  +'<div class="lt-bar"><label class="lt-search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="lt-q" placeholder="'+ph+'" aria-label="'+ph+'" value="'+enc(ltQ)+'" autocomplete="off"></label>'
+  +'<div class="lt-chips" role="group" aria-label="Filtrar por situação">'+['Todos',...chips].map(c=>'<button type="button" data-lt-st="'+enc(c)+'" aria-pressed="'+(c===ltSt)+'">'+enc(c)+'</button>').join('')+'</div></div>'
+  +'<p class="empty lt-none" hidden>Nada encontrado com esse filtro.</p>';
+}
+function ltApply(){
+ const q=ltNorm(ltQ).trim();let shown=0;
+ document.querySelectorAll('#view [data-st]').forEach(c=>{const ok=(ltSt==='Todos'||c.dataset.st.split('|').includes(ltSt))&&(!q||ltNorm(c.textContent).includes(q));c.hidden=!ok;if(ok)shown++});
+ const none=$('#view .lt-none');if(none)none.hidden=!!shown||!document.querySelector('#view [data-st]');
+}
+document.addEventListener('input',e=>{if(e.target.id==='lt-q'){ltQ=e.target.value;ltApply()}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-lt-st]');if(!b)return;ltSt=b.dataset.ltSt;document.querySelectorAll('[data-lt-st]').forEach(x=>x.setAttribute('aria-pressed',x===b));ltApply()});
 function propertyList(){
  if(!db.properties.length)return panel('Seus imóveis',empty('Cadastre o primeiro imóvel para começar.'));
- const now=today(),plural=(n,a,b)=>n+' '+(n===1?a:b);
- return '<div class="pl-grid">'+db.properties.map(p=>{
+ const now=today(),plural=(n,a,b)=>n+' '+(n===1?a:b),act=p=>db.leases.find(l=>l.property===p.id&&l.start<=now&&l.end>=now);
+ const busy=db.properties.filter(act),inc=busy.reduce((n,p)=>n+act(p).amount,0),free=db.properties.length-busy.length,occ=Math.round(busy.length/db.properties.length*100);
+ return ltTools([['Imóveis',db.properties.length,'na carteira'],['Ocupação',occ+'%',busy.length+' de '+db.properties.length+' alugados','',occ],['Disponíveis',free,free?'sem contrato vigente':'todos alugados',free?'':'good'],['Receita mensal',money(inc),busy.length?'média de '+money(Math.round(inc/busy.length)):'nenhum contrato vigente']],['Alugados','Disponíveis'],'Buscar por nome, endereço ou bairro')+'<div class="pl-grid">'+db.properties.map(p=>{
   const l=db.leases.find(l=>l.property===p.id&&l.start<=now&&l.end>=now),who=l&&db.people.find(x=>x.id===l.person)?.name;
   const feats=[p.area?String(p.area).replace('.',',')+' m²':'',p.bedrooms?plural(p.bedrooms,'quarto','quartos'):'',p.bathrooms?plural(p.bathrooms,'banheiro','banheiros'):'',p.parking?plural(p.parking,'vaga','vagas'):'',p.furnished?'mobiliado':''].filter(Boolean).join(' · ');
   const value=l?l.amount:p.rent;
-  return '<article class="pl-card"><div class="pl-media">'+(p.photo?'<img src="'+enc(p.photo)+'" alt="Fachada de '+enc(p.name)+'" loading="lazy">':'<span class="pl-ph" aria-hidden="true">'+icon(1)+'</span>')+'<span class="pl-status '+(l?'is-busy':'is-free')+'">'+(l?'Alugado':'Disponível')+'</span></div><div class="pl-body"><h3>'+enc(p.name)+'</h3><p>'+enc(p.address)+'</p>'+(feats?'<small>'+enc(feats)+'</small>':'')+'<div class="pl-foot"><span class="pl-type">'+enc(p.type)+'</span>'+(value?'<strong>'+money(value)+'<small>/mês</small></strong>':'')+'</div>'+(who?'<small class="pl-who">Locatário: '+enc(who)+'</small>':'')+'</div></article>'}).join('')+'</div>';
+  return '<article class="pl-card" data-st="'+(l?'Alugados':'Disponíveis')+'"><div class="pl-media">'+(p.photo?'<img src="'+enc(p.photo)+'" alt="Fachada de '+enc(p.name)+'" loading="lazy">':'<span class="pl-ph" aria-hidden="true">'+icon(1)+'</span>')+'<span class="pl-status '+(l?'is-busy':'is-free')+'">'+(l?'Alugado':'Disponível')+'</span></div><div class="pl-body"><h2>'+enc(p.name)+'</h2><p>'+enc(p.address)+'</p>'+(feats?'<small>'+enc(feats)+'</small>':'')+'<div class="pl-foot"><span class="pl-type">'+enc(p.type)+'</span>'+(value?'<strong>'+money(value)+'<small>/mês</small></strong>':'')+'</div>'+(who?'<small class="pl-who">Locatário: '+enc(who)+'</small>':'')+'</div></article>'}).join('')+'</div>';
 }
 // Cadastro de locatário em 3 etapas: dados pessoais, contato e endereço/garantia (Claude · design/ux-ui).
 const tfGuarantees=['Sem garantia','Caução','Fiador','Seguro fiança','Título de capitalização'];
@@ -566,8 +583,8 @@ document.addEventListener('change',e=>{
 // Lista de locatários em cartões, com situação do contrato e atalho de WhatsApp.
 function personList(){
  if(!db.people.length)return panel('Seus locatários',empty('Cadastre um locatário para vinculá-lo ao imóvel.'));
- const now=today(),cs=charges(db,month);
- return '<div class="tl-grid">'+db.people.map(p=>{
+ const now=today(),cs=charges(db,month),lateP=new Set(cs.filter(c=>c.status==='Em atraso').map(c=>c.person?.id)),withL=db.people.filter(p=>db.leases.some(l=>l.person===p.id&&l.start<=now&&l.end>=now)).length,noPhone=db.people.filter(p=>!tfDigits(p.phone)).length;
+ return ltTools([['Locatários',db.people.length,'na carteira'],['Com contrato ativo',withL,db.people.length-withL?(db.people.length-withL)+' sem contrato':'todos com contrato'],['Em atraso',lateP.size,lateP.size?'em '+monthName(month):'ninguém em atraso',lateP.size?'bad':'good'],['Sem WhatsApp',noPhone,noPhone?'cadastre para enviar lembretes':'todos com contato',noPhone?'':'good']],['Em atraso','Contrato ativo','Sem contrato'],'Buscar por nome, e-mail ou imóvel')+'<div class="tl-grid">'+db.people.map(p=>{
   const l=db.leases.find(l=>l.person===p.id&&l.start<=now&&l.end>=now),prop=l&&db.properties.find(x=>x.id===l.property);
   const late=cs.filter(c=>c.person?.id===p.id&&c.status==='Em atraso');
   const st=late.length?['is-late','Em atraso']:l?['is-ok','Contrato ativo']:['is-none','Sem contrato'];
@@ -575,7 +592,7 @@ function personList(){
   const d=tfDigits(p.doc),doc=d.length===11?'CPF ***.'+d.slice(3,6)+'.'+d.slice(6,9)+'-**':d.length===14?'CNPJ '+tfDocMask(d,true):'';
   const ph=tfDigits(p.phone),wa=ph?'https://wa.me/'+(ph.length<=11?'55':'')+ph:'';
   const rows=[ph?['Telefone','<a href="'+enc(wa)+'" target="_blank" rel="noopener">'+enc(tfPhoneMask(ph))+'</a>']:['Telefone','<span class="tl-muted">Sem telefone</span>'],p.email?['E-mail','<a href="mailto:'+enc(p.email)+'">'+enc(p.email)+'</a>']:null,['Imóvel',prop?enc(prop.name)+' · '+money(l.amount)+'/mês':'<span class="tl-muted">Nenhum no momento</span>'],p.guarantee&&p.guarantee!=='Sem garantia'?['Garantia',enc(p.guarantee)+(p.gValue?' · '+money(p.gValue):'')+(p.gName?' · '+enc(p.gName):'')]:null].filter(Boolean);
-  return '<article class="tl-card"><div class="tl-head"><span class="tl-av" aria-hidden="true">'+enc(ini||'?')+'</span><div><h3>'+enc(p.name)+'</h3><small>'+(p.kind==='PJ'?'Pessoa jurídica':'Pessoa física')+(doc?' · '+doc:'')+'</small></div><span class="tl-st '+st[0]+'">'+st[1]+'</span></div>'
+  return '<article class="tl-card" data-st="'+(late.length?'Em atraso|':'')+(l?'Contrato ativo':'Sem contrato')+'"><div class="tl-head"><span class="tl-av" aria-hidden="true">'+enc(ini||'?')+'</span><div><h2>'+enc(p.name)+'</h2><small>'+(p.kind==='PJ'?'Pessoa jurídica':'Pessoa física')+(doc?' · '+doc:'')+'</small></div><span class="tl-st '+st[0]+'">'+st[1]+'</span></div>'
    +'<dl>'+rows.map(([k,v])=>'<div><dt>'+k+'</dt><dd>'+v+'</dd></div>').join('')+'</dl>'
    +(late.length?'<p class="tl-alert">'+late.length+' cobrança'+(late.length>1?'s':'')+' em atraso · '+money(late.reduce((n,c)=>n+c.amount,0))+'</p>':'')
    +(wa?'<a class="button tl-wa" href="'+enc(wa+'?text='+encodeURIComponent('Olá, '+p.name.split(' ')[0]+'!'))+'" target="_blank" rel="noopener">Conversar no WhatsApp</a>':'')
@@ -663,15 +680,15 @@ document.addEventListener('change',e=>{const t=e.target;if(action!=='lease'||!t.
 function leaseList(){
  if(!db.leases.length)return panel('Seus contratos',empty('O contrato vincula um imóvel a um locatário e gera as cobranças mensais.'));
  const now=today(),cs=charges(db,month),days=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5);
- const order=l=>l.end<now?2:l.start>now?1:0;
- return '<div class="lc-grid">'+db.leases.slice().sort((a,b)=>order(a)-order(b)||a.end.localeCompare(b.end)).map(l=>{
+ const order=l=>l.end<now?2:l.start>now?1:0,live=db.leases.filter(l=>l.start<=now&&l.end>=now),ending=live.filter(l=>days(now,l.end)<=90),late=cs.filter(c=>c.status==='Em atraso');
+ return ltTools([['Vigentes',live.length,db.leases.length-live.length?(db.leases.length-live.length)+' futuros ou encerrados':'todos vigentes'],['Receita contratada',money(live.reduce((n,l)=>n+l.amount,0)),'por mês'],['Terminam em 90 dias',ending.length,ending.length?'hora de renovar ou anunciar':'nenhum perto do fim',ending.length?'':'good'],['Em atraso no mês',late.length,late.length?money(late.reduce((n,c)=>n+c.amount,0)):'tudo em dia',late.length?'bad':'good']],['Vigentes','Terminam em breve','Futuros','Encerrados'],'Buscar por imóvel ou locatário')+'<div class="lc-grid">'+db.leases.slice().sort((a,b)=>order(a)-order(b)||a.end.localeCompare(b.end)).map(l=>{
   const p=db.properties.find(x=>x.id===l.property),who=db.people.find(x=>x.id===l.person),left=days(now,l.end);
   const st=l.end<now?['is-none','Encerrado']:l.start>now?['is-soon','Começa em '+date(l.start)]:left<=60?['is-warn','Termina em '+left+' dia'+(left===1?'':'s')]:['is-ok','Vigente'];
   const total=Math.max(1,days(l.start,l.end)),pct=Math.min(100,Math.max(0,Math.round(days(l.start,now)/total*100)));
   const n=lfMonths(l.start,l.end),cur=Math.min(n,Math.max(0,lfMonths(l.start,now)));
   const c=cs.find(x=>x.id===l.id),mc=c?c.paid?['is-ok','Pago em '+date(c.paid.date)]:c.status==='Em atraso'?['is-late','Em atraso desde '+date(c.due)]:['is-soon','Vence em '+date(c.due)]:null;
   const rows=[['Locatário',enc(who?.name||'Locatário')],['Vigência',date(l.start)+' a '+date(l.end)],['Vencimento','Todo dia '+l.day],l.index&&l.index!=='Sem reajuste'?['Reajuste',enc(l.index)+' · '+date(lfISO(new Date(Date.parse(lfEnd(l.start,12))+864e5))).slice(3)]:null,l.guarantee&&l.guarantee!=='Sem garantia'?['Garantia',enc(l.guarantee)+(l.gValue?' · '+money(l.gValue):'')]:null].filter(Boolean);
-  return '<article class="lc-card"><div class="lc-head"><div><h3>'+enc(p?.name||'Imóvel')+'</h3><strong>'+money(l.amount)+'<small>/mês</small></strong></div><span class="tl-st '+st[0]+'">'+st[1]+'</span></div>'
+  return '<article class="lc-card" data-st="'+(l.end<now?'Encerrados':l.start>now?'Futuros':'Vigentes'+(left<=60?'|Terminam em breve':''))+'"><div class="lc-head"><div><h2>'+enc(p?.name||'Imóvel')+'</h2><strong>'+money(l.amount)+'<small>/mês</small></strong></div><span class="tl-st '+st[0]+'">'+st[1]+'</span></div>'
    +(st[1]==='Encerrado'||l.start>now?'':'<div class="lc-bar" role="img" aria-label="Mês '+cur+' de '+n+'"><span style="width:'+pct+'%"></span></div><small class="lc-bar-l">Mês '+cur+' de '+n+'</small>')
    +'<dl>'+rows.map(([k,v])=>'<div><dt>'+k+'</dt><dd>'+v+'</dd></div>').join('')+'</dl>'
    +(mc?'<p class="lc-month '+mc[0]+'"><span>'+monthName(month).replace(/^./,c=>c.toUpperCase())+'</span>'+mc[1]+'</p>':'')
