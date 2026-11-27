@@ -48,8 +48,12 @@ Depois do rollback: coluna nova ausente, 0 imóveis, bucket ainda em 5 MB, funç
 - `adjustment_index`: igpm, ipca, ivar, none
 - Dinheiro: centavos no front → reais (`/100`) no banco.
 
-## 4. Próximo passo (Claude)
-1. Aplicar a migração em produção **após aprovação do responsável**.
+## 4. Andamento
+- 27/11/2026: migração **aplicada em produção** com aprovação do responsável (`cadastros_completos`); conferido: 11 colunas em `properties`, 13 em `renters`, bucket 300 KB webp/jpeg, RPC só para `authenticated`. Avisos do advisor de segurança são anteriores (funções security definer de convite/carteira e proteção de senha vazada desligada).
+- 27/11/2026: front ajustado (itens 2 e 3 abaixo) na branch `design/ux-ui`. Payloads gerados pelo front ensaiados no banco real com rollback: imóvel + foto, locatário, contrato ok; sobreposição → `23P01`; CPF repetido → `renters_document_uidx` (ambos com mensagem amigável). Upload real no Storage ainda não testado (exige login de usuário).
+
+Itens:
+1. ~~Aplicar a migração em produção após aprovação do responsável.~~
 2. Ajustar `writeOnline`/`loadOnline` em `app.js` com o mapeamento acima; foto: upload em `property-photos/<tenant>/<property>.webp` + linha em `property_photos`; URL assinada ao carregar; erro `23P01` → "Este imóvel já tem contrato nesse período."
 3. Remover os avisos `.pf-note` dos três formulários.
 4. Codex (QA): testes de isolamento entre carteiras, papéis (viewer não grava), foto acima de 300 KB/PNG recusada, `npm test`, desempenho.

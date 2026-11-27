@@ -743,32 +743,84 @@ async function listRows(table,query,order='id'){
  }
 }
 async function onlineTenants(){return listRows('tenant_members','select=tenant_id,role,tenants(name)&status=eq.active&user_id=eq.'+encodeURIComponent(auth.user.id))}
+// Tradução entre os rótulos das telas e os códigos do banco (migração 20261127_cadastros_completos).
+const dbIndex={'IGP-M':'igpm','IPCA':'ipca','IVAR':'ivar','Sem reajuste':'none'};
+const dbGuarantee={'Sem garantia':'none','Caução':'deposit','Fiador':'guarantor','Seguro fiança':'surety_insurance','Título de capitalização':'capitalization_bond'};
+const dbMarital={'Solteiro(a)':'single','Casado(a)':'married','União estável':'stable_union','Divorciado(a)':'divorced','Viúvo(a)':'widowed'};
+const dbPref={'WhatsApp':'whatsapp','Ligação':'phone_call','E-mail':'email'};
+const dbBack=m=>Object.fromEntries(Object.entries(m).map(([a,b])=>[b,a]));
+const [uiIndex,uiGuarantee,uiMarital,uiPref]=[dbIndex,dbGuarantee,dbMarital,dbPref].map(dbBack);
+const dbNull=v=>v===''||v==null?null:v,dbReais=c=>c?c/100:null,dbCents=v=>v==null?0:Math.round(Number(v)*100),dbDigits=v=>String(v||'').replace(/\D/g,'');
+const uiCep=v=>v&&v.length===8?v.slice(0,5)+'-'+v.slice(5):'';
+const uiAddress=a=>{const line=[a.street,a.number].filter(Boolean).join(', ')+(a.complement?' · '+a.complement:'');return [line,a.neighborhood].filter(Boolean).join(' – ')+(a.city?', '+a.city+(a.state?'/'+a.state:''):'')};
+function dbBlob(url){const [head,data]=url.split(',');const bin=atob(data),buf=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)buf[i]=bin.charCodeAt(i);return new Blob([buf],{type:head.slice(5,head.indexOf(';'))})}
 async function loadOnline(t){
  const filter='tenant_id=eq.'+encodeURIComponent(t)+'&select=';
  const rows=(table,cols,order)=>listRows(table,filter+cols,order);
- const [props,units,people,contracts,payments,jobs,expenses]=await Promise.all([
- rows('properties','id,name,property_type,street,number,city'),rows('property_units','id,name,property_id,status'),
- rows('renters','id,name,phone'),rows('rental_contracts','id,unit_id,renter_id,start_date,end_date,monthly_rent,due_day,status'),
- rows('af_payments','contract_id,period,received,cents','contract_id,period'),rows('af_jobs','id,property_id,name,scheduled,completed'),rows('af_expenses','id,name,paid,cents')]);
- const unitMap=new Map(units.map(u=>[u.id,u]));
- return {units,properties:props.map(p=>({id:p.id,name:p.name,type:types[p.property_type]||'Outro',address:[p.street,p.number,p.city].filter(Boolean).join(', ')})),
- people:people.map(p=>({...p,phone:p.phone||''})),leases:contracts.filter(c=>['active','ended'].includes(c.status)).map(c=>({id:c.id,unit:c.unit_id,property:unitMap.get(c.unit_id)?.property_id,person:c.renter_id,start:c.start_date,end:c.end_date,day:c.due_day,amount:Math.round(c.monthly_rent*100)})),
+ const [props,units,people,contracts,payments,jobs,expenses,photos]=await Promise.all([
+ rows('properties','id,name,property_type,cep,street,number,complement,neighborhood,city,state,purpose,bedrooms,bathrooms,parking,furnished,pets_allowed,registry,reference,condo_fee,iptu_yearly,fees_payer'),
+ rows('property_units','id,name,property_id,status,area_m2,suggested_rent','created_at'),
+ rows('renters','id,person_type,name,document,email,phone,secondary_contact_name,secondary_contact_phone,cep,street,number,complement,neighborhood,city,state,notes,birth_date,marital_status,rg,occupation,legal_rep,monthly_income,contact_pref,guarantee_type,guarantee_amount,guarantor_name,guarantor_document,guarantor_phone,guarantee_ref'),
+ rows('rental_contracts','id,unit_id,renter_id,start_date,end_date,monthly_rent,due_day,status,adjustment_index,penalty_percent,late_interest_percent,guarantee_type,deposit_amount,notes'),
+ rows('af_payments','contract_id,period,received,cents','contract_id,period'),rows('af_jobs','id,property_id,name,scheduled,completed'),rows('af_expenses','id,name,paid,cents'),
+ rows('property_photos','property_id,storage_path','created_at')]);
+ const unitMap=new Map(units.map(u=>[u.id,u])),mainUnit=new Map();for(const u of units)if(!mainUnit.has(u.property_id))mainUnit.set(u.property_id,u);
+ const photoPath=new Map(photos.map(p=>[p.property_id,p.storage_path])),signed=new Map();
+ if(photoPath.size)try{
+  const list=await api('/storage/v1/object/sign/property-photos',{method:'POST',body:JSON.stringify({expiresIn:3600,paths:[...photoPath.values()]})},await token());
+  for(const x of list||[])if(x.signedURL)signed.set(x.path,endpoint+'/storage/v1'+x.signedURL);
+ }catch{}
+ return {units,properties:props.map(p=>{const u=mainUnit.get(p.id)||{},n=p.number||'';return {id:p.id,name:p.name,type:types[p.property_type]||'Outro',
+  purpose:p.purpose==='commercial'?'Comercial':'Residencial',area:u.area_m2==null?null:Number(u.area_m2),bedrooms:p.bedrooms,bathrooms:p.bathrooms,parking:p.parking,furnished:!!p.furnished,pets:!!p.pets_allowed,registry:p.registry||'',
+  photo:signed.get(photoPath.get(p.id))||'',cep:uiCep(p.cep),street:p.street||'',number:n,noNumber:n==='S/N',complement:p.complement||'',district:p.neighborhood||'',city:p.city||'',uf:p.state||'',reference:p.reference||'',
+  address:uiAddress(p),rent:dbCents(u.suggested_rent),condo:dbCents(p.condo_fee),iptu:dbCents(p.iptu_yearly),payer:p.fees_payer==='owner'?'Locador':'Locatário'}}),
+ people:people.map(p=>{const pj=p.person_type==='pj',n=p.number||'';return {id:p.id,kind:pj?'PJ':'PF',name:p.name,doc:p.document||'',birth:p.birth_date||'',marital:uiMarital[p.marital_status]||'',rg:p.rg||'',job:p.occupation||'',rep:p.legal_rep||'',income:dbCents(p.monthly_income),
+  phone:p.phone||'',email:p.email||'',pref:uiPref[p.contact_pref]||'WhatsApp',emName:p.secondary_contact_name||'',emPhone:p.secondary_contact_phone||'',
+  cep:uiCep(p.cep),street:p.street||'',number:n,noNumber:n==='S/N',complement:p.complement||'',district:p.neighborhood||'',city:p.city||'',uf:p.state||'',address:p.street?uiAddress(p):'',
+  guarantee:uiGuarantee[p.guarantee_type]||'Sem garantia',gValue:dbCents(p.guarantee_amount),gName:p.guarantor_name||'',gDoc:p.guarantor_document||'',gPhone:p.guarantor_phone||'',gRef:p.guarantee_ref||'',notes:p.notes||''}}),
+ leases:contracts.filter(c=>['active','ended'].includes(c.status)).map(c=>({id:c.id,unit:c.unit_id,property:unitMap.get(c.unit_id)?.property_id,person:c.renter_id,start:c.start_date,end:c.end_date,day:c.due_day,amount:Math.round(c.monthly_rent*100),
+  months:lfMonths(c.start_date,c.end_date),index:uiIndex[c.adjustment_index]||'',fine:c.penalty_percent==null?null:Number(c.penalty_percent),interest:c.late_interest_percent==null?null:Number(c.late_interest_percent),
+  guarantee:uiGuarantee[c.guarantee_type]||'Sem garantia',gValue:dbCents(c.deposit_amount),notes:c.notes||''})),
  payments:payments.map(p=>({key:p.contract_id+'/'+p.period.slice(0,7),amount:Number(p.cents),date:p.received})),
  jobs:jobs.map(j=>({id:j.id,property:j.property_id,name:j.name,date:j.scheduled,done:!!j.completed})),
  expenses:expenses.map(e=>({id:e.id,name:e.name,date:e.paid,amount:Number(e.cents)}))};
 }
 async function writeOnline(t,type,id,f,db,month){
  const post=async(path,body)=>api('/rest/v1/'+path,{method:'POST',body:JSON.stringify(body)},await token());
- switch(type){
- case 'property':return post('rpc/af_add_property',{t,n:f.name,k:Object.keys(types).find(k=>types[k]===f.type)||'other',addr:f.address,pid:crypto.randomUUID()});
- case 'person':{let phone=f.phone.replace(/\D/g,'');if(phone.length>11&&phone.startsWith('55'))phone=phone.slice(2);return post('renters',{tenant_id:t,name:f.name,phone:phone||null})}
- case 'lease':return post('rental_contracts',{tenant_id:t,unit_id:f.unit,renter_id:f.person,start_date:f.start,end_date:f.end,monthly_rent:f.amount/100,due_day:+f.day,status:'active'});
- case 'pay':{const c=charges(db,month).find(c=>c.key===id&&!c.paid);if(!c)throw Error('Cobrança indisponível.');return post('af_payments',{tenant_id:t,contract_id:c.id,period:month+'-01',received:f.date,cents:c.amount})}
- case 'job':return post('af_jobs',{tenant_id:t,property_id:f.property,name:f.name,scheduled:f.date});
- case 'finish':return post('rpc/af_finish_job',{t,j:id,dt:f.date,cost:f.amount});
- case 'expense':return post('af_expenses',{tenant_id:t,name:f.name,paid:f.date,cents:f.amount});
- default:throw Error('Operação desconhecida.');
+ const friendly=e=>{const m=e.message||'';
+  if(/no_overlap|exclusion constraint/.test(m))return Error('Este imóvel já tem contrato nesse período.');
+  if(/renters_document_uidx/.test(m))return Error('Já existe um locatário com este CPF/CNPJ nesta carteira.');
+  if(/check constraint/.test(m))return Error('Algum campo está em formato inválido. Confira e tente de novo.');
+  return e};
+ try{switch(type){
+ case 'property':{
+  const pid=crypto.randomUUID();
+  await post('rpc/af_add_property_v2',{t,p:{id:pid,name:f.name,type:Object.keys(types).find(k=>types[k]===f.type)||'other',
+   cep:dbNull(dbDigits(f.cep)),street:dbNull(f.street),number:dbNull(f.number),complement:dbNull(f.complement),neighborhood:dbNull(f.district),city:dbNull(f.city),state:dbNull((f.uf||'').toUpperCase()),
+   purpose:f.purpose==='Comercial'?'commercial':'residential',bedrooms:f.bedrooms,bathrooms:f.bathrooms,parking:f.parking,furnished:!!f.furnished,pets_allowed:!!f.pets,
+   registry:dbNull(f.registry),reference:dbNull(f.reference),condo_fee:dbReais(f.condo),iptu_yearly:dbReais(f.iptu),fees_payer:f.payer==='Locador'?'owner':'renter',area_m2:f.area||null,suggested_rent:dbReais(f.rent)}});
+  if(!f.photo)return {};
+  try{
+   const blob=dbBlob(f.photo),path=t+'/'+pid+(blob.type==='image/jpeg'?'.jpg':'.webp');
+   const res=await fetch(endpoint+'/storage/v1/object/property-photos/'+path,{method:'POST',headers:{apikey:publicKey,Authorization:'Bearer '+await token(),'Content-Type':blob.type,'x-upsert':'true'},body:blob});
+   if(!res.ok)throw Error();
+   await post('property_photos',{tenant_id:t,property_id:pid,storage_path:path});return {};
+  }catch{return {warn:'Imóvel salvo, mas a foto não foi enviada. Tente uma foto menor.'}}
  }
+ case 'person':{let phone=dbDigits(f.phone);if(phone.length>11&&phone.startsWith('55'))phone=phone.slice(2);
+  return await post('renters',{tenant_id:t,person_type:f.kind==='PJ'?'pj':'pf',name:f.name,document:dbNull(f.doc),email:dbNull(f.email),phone:dbNull(phone),
+   secondary_contact_name:dbNull(f.emName),secondary_contact_phone:dbNull(f.emPhone),cep:dbNull(dbDigits(f.cep)),street:dbNull(f.street),number:dbNull(f.number),complement:dbNull(f.complement),
+   neighborhood:dbNull(f.district),city:dbNull(f.city),state:dbNull((f.uf||'').toUpperCase()),notes:dbNull(f.notes),birth_date:dbNull(f.birth),marital_status:dbMarital[f.marital]||null,
+   rg:dbNull(f.rg),occupation:dbNull(f.job),legal_rep:dbNull(f.rep),monthly_income:dbReais(f.income),contact_pref:dbPref[f.pref]||'whatsapp',
+   guarantee_type:dbGuarantee[f.guarantee]||'none',guarantee_amount:dbReais(f.gValue),guarantor_name:dbNull(f.gName),guarantor_document:dbNull(f.gDoc),guarantor_phone:dbNull(f.gPhone),guarantee_ref:dbNull(f.gRef)})}
+ case 'lease':return await post('rental_contracts',{tenant_id:t,unit_id:f.unit,renter_id:f.person,start_date:f.start,end_date:f.end,monthly_rent:f.amount/100,due_day:+f.day,status:'active',
+   ...(dbIndex[f.index]?{adjustment_index:dbIndex[f.index]}:{}),penalty_percent:f.fine,late_interest_percent:f.interest,guarantee_type:dbGuarantee[f.guarantee]||'none',deposit_amount:dbReais(f.gValue),notes:dbNull(f.notes)});
+ case 'pay':{const c=charges(db,month).find(c=>c.key===id&&!c.paid);if(!c)throw Error('Cobrança indisponível.');return await post('af_payments',{tenant_id:t,contract_id:c.id,period:month+'-01',received:f.date,cents:c.amount})}
+ case 'job':return await post('af_jobs',{tenant_id:t,property_id:f.property,name:f.name,scheduled:f.date});
+ case 'finish':return await post('rpc/af_finish_job',{t,j:id,dt:f.date,cost:f.amount});
+ case 'expense':return await post('af_expenses',{tenant_id:t,name:f.name,paid:f.date,cents:f.amount});
+ default:throw Error('Operação desconhecida.');
+ }}catch(e){throw friendly(e)}
 }
 const $=s=>document.querySelector(s),pages=['Painel','Imóveis','Locatários','Contratos','Cobranças','Manutenções','Financeiro','Mais'];
 const paths=['M3 11l9-8 9 8v10H4V11 M9 21v-7h6v7','M4 21V4h12v17 M16 10h4v11 M7 8h2 M11 8h2 M7 12h2 M11 12h2 M2 21h20','M16 21v-2a5 5 0 0 0-10 0v2 M11 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M18 6a3 3 0 0 1 0 6 M19 15q3 1 3 5','M5 3h10l4 4v14H5z M14 3v5h5 M8 12h8 M8 16h6','M3 6h18v13H3z M3 10h18 M7 15h3','M14 5a5 5 0 0 0-6 6l-5 6a2 2 0 0 0 3 3l6-6a5 5 0 0 0 6-7l-3 3-3-3z','M4 3v17h17 M8 16v-4 M13 16V8 M18 16V5','M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z'];
@@ -1095,7 +1147,7 @@ function propertyForm(){
   +'<div class="pf-row pf-two">'+pfMoney('Condomínio por mês'+pfOpt,'condo')+pfMoney('IPTU por ano'+pfOpt,'iptu',false,'<span id="pf-iptu-m"></span>')+'</div>'
   +'<div class="pf-field"><span>Quem paga condomínio e IPTU</span>'+pfChips('payer',['Locatário','Locador'],'Locatário',false,'Quem paga condomínio e IPTU')+'</div>'
   +'<div class="pf-total" aria-live="polite"><span>Total mensal para o locatário</span><strong id="pf-total">R$ 0,00</strong><small id="pf-total-d">Aluguel</small></div>'
-  +(wallet==='cloud'?'<p class="pf-note">Na carteira online, por enquanto ficam salvos o nome, o tipo e o endereço. Foto, características e valores ficam para a próxima atualização do banco.</p>':'')
+  
   +'</fieldset>';
  return steps+id+loc+val+'<div class="pf-foot"><button type="button" class="pf-back" data-pf-back hidden>Voltar</button><button class="primary pf-next">Continuar</button></div>';
 }
@@ -1146,7 +1198,7 @@ async function pfPhoto(file){
  try{
   const img=await createImageBitmap(file),max=960,s=Math.min(1,max/Math.max(img.width,img.height));
   const c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-  let url=c.toDataURL('image/webp',.72);if(!url.startsWith('data:image/webp'))url=c.toDataURL('image/jpeg',.72);
+  let url='';for(const q of [.72,.6,.48,.36]){url=c.toDataURL('image/webp',q);if(!url.startsWith('data:image/webp'))url=c.toDataURL('image/jpeg',q);if(url.length*.75<290e3)break}
   pfEl().elements.photo.value=url;box.classList.add('has-photo');
   box.querySelector('.pf-photo-prev')?.remove();
   box.insertAdjacentHTML('beforeend','<div class="pf-photo-prev"><img src="'+url+'" alt="Foto da fachada escolhida"><div><label for="pf-file" class="pf-photo-btn">Trocar foto</label><button type="button" class="pf-photo-btn" data-pf-rm>Remover</button></div></div>');
@@ -1299,7 +1351,7 @@ function tenantForm(){
   +'<label class="pf-mini"><small>Telefone</small><input name="gPhone" type="tel" inputmode="tel" maxlength="16" autocomplete="off" pattern="\\(\\d{2}\\) \\d{4,5}-\\d{4}"></label></div></div>'
   +'<div class="tf-g" data-g="Seguro fiança|Título de capitalização" hidden>'+pfField('Empresa e número da apólice'+pfOpt,'gRef','maxlength="80" autocomplete="off"')+'</div>'
   +'<label class="pf-field"><span>Observações'+pfOpt+'</span><textarea name="notes" rows="3" maxlength="500" placeholder="Ex.: tem um cachorro pequeno; prefere contato à tarde"></textarea></label>'
-  +(wallet==='cloud'?'<p class="pf-note">Na carteira online, por enquanto ficam salvos o nome e o WhatsApp. Documento, endereço e garantia ficam para a próxima atualização do banco.</p>':'')
+  
   +'</fieldset>';
  return steps+who+contact+addr+'<div class="pf-foot"><button type="button" class="pf-back" data-pf-back hidden>Voltar</button><button class="primary pf-next">Continuar</button></div>';
 }
@@ -1380,7 +1432,7 @@ function leaseForm(){
   +'<div class="tf-g" data-g="Caução" hidden>'+pfMoney('Valor da caução','gValue',false)+'</div>'
   +'<label class="pf-field"><span>Observações'+pfOpt+'</span><textarea name="notes" rows="3" maxlength="500" placeholder="Ex.: pintura na entrega; chaves entregues em 2 vias"></textarea></label>'
   +'<div class="pf-total lf-sum" aria-live="polite"><span>Resumo do contrato</span><div id="lf-sum"></div></div>'
-  +(cloud?'<p class="pf-note">Na carteira online, por enquanto ficam salvos imóvel, locatário, datas, valor e vencimento. Reajuste, multa, juros, garantia e observações ficam para a próxima atualização do banco.</p>':'')
+  
   +'</fieldset>';
  return steps+parts+term+cond+'<div class="pf-foot"><button type="button" class="pf-back" data-pf-back hidden>Voltar</button><button class="primary pf-next">Continuar</button></div>';
 }
@@ -1479,7 +1531,7 @@ $('#form').onsubmit=async e=>{e.preventDefault();if(busy)return;if(action==='pro
  if(type==='account'){if(!auth)await login(f.email.trim(),f.password);$('#fields').querySelector('[name=password]')?.remove();await showTenants();return}
  if(type==='tenant'){await activate(tenants.find(m=>m.tenant_id===f.tenant));return}
  if(type==='property'){const p=pfData(new FormData(e.target));
-  if(wallet==='cloud'){await writeOnline(tenantId,type,id,p,db,month);$('dialog').close();try{await refreshOnline();toast('Imóvel salvo no Supabase.')}catch{toast('Salvo no Supabase. Clique em Atualizar para recarregar.')}return}
+  if(wallet==='cloud'){const r=await writeOnline(tenantId,type,id,p,db,month);$('dialog').close();try{await refreshOnline();toast(r?.warn||'Imóvel salvo no Supabase.')}catch{toast('Salvo no Supabase. Clique em Atualizar para recarregar.')}return}
   db.properties.push({...p,id:crypto.randomUUID()});save();$('dialog').close();render();toast('Imóvel cadastrado.');return}
  if(type==='lease'){const p=lfData(new FormData(e.target));
   if(wallet==='cloud'){await writeOnline(tenantId,type,id,p,db,month);$('dialog').close();try{await refreshOnline();toast('Contrato salvo no Supabase.')}catch{toast('Salvo no Supabase. Clique em Atualizar para recarregar.')}return}
