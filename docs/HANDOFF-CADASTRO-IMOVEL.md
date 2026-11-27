@@ -1,5 +1,7 @@
 # Cadastro de imóvel em 3 etapas: pendência de banco (27/11/2026)
 
+> **Atualização 27/11/2026:** a proposta consolidada e o rascunho SQL para o Codex estão em [CODEX-BANCO-ONLINE.md](CODEX-BANCO-ONLINE.md). As seções "Proposta para o Codex" abaixo ficam só como histórico.
+
 Branch `design/ux-ui` (Claude). O formulário "Novo imóvel" passou a coletar, em 3 etapas:
 
 | Etapa | Campos |
