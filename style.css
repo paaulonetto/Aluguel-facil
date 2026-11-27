@@ -453,3 +453,28 @@ dialog.dlg-wide #error:empty{display:none}
 .pl-foot strong{font:var(--af-valor);font-size:18px;color:var(--af-tinta);font-variant-numeric:tabular-nums}
 .pl-foot strong small{font:var(--af-pequeno);color:var(--af-texto-2);margin-left:2px}
 .pl-who{font:var(--af-pequeno);color:var(--af-texto-2)}
+/* Cadastro e lista de locatários (Claude · design/ux-ui) */
+.pf-field textarea{width:100%;margin:0;min-height:96px;padding:12px 14px;border:1px solid var(--af-borda-campo);border-radius:var(--af-raio-campo);font:var(--af-corpo);color:var(--af-tinta);background:var(--af-branco);resize:vertical}
+.pf-field textarea:focus-visible{outline:2px solid var(--af-verde);outline-offset:1px;border-color:var(--af-verde)}
+.pf-field>span:first-child b{font:inherit}
+.pf-mini input:invalid:not(:placeholder-shown):not(:focus),.pf-field input:user-invalid{border-color:var(--af-atraso-txt)}
+.tf-g[hidden],.tf-pf[hidden],.tf-pj[hidden]{display:none}
+.tf-g.pf-field{gap:10px}
+.tl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:8px}
+.tl-card{background:var(--af-branco);border:1px solid var(--af-borda-suave);border-radius:var(--af-raio-cartao);padding:16px;display:flex;flex-direction:column;gap:12px}
+.tl-head{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center}
+.tl-av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--af-verde-claro);color:var(--af-verde-texto);font:700 15px/1 var(--af-font-texto)}
+.tl-card h3{font:var(--af-h2);color:var(--af-tinta);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl-head small{font:var(--af-pequeno);color:var(--af-texto-2)}
+.tl-st{padding:5px 10px;border-radius:999px;font:600 12px/1 var(--af-font-texto);white-space:nowrap}
+.tl-st.is-ok{background:var(--af-pago-bg);color:var(--af-pago-txt)}
+.tl-st.is-late{background:var(--af-atraso-bg);color:var(--af-atraso-txt)}
+.tl-st.is-none{background:var(--af-trilho);color:var(--af-texto-3)}
+.tl-card dl{margin:0;display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--af-divisor)}
+.tl-card dl div{display:grid;grid-template-columns:76px minmax(0,1fr);gap:8px;font:var(--af-pequeno)}
+.tl-card dt{color:var(--af-texto-2)}
+.tl-card dd{margin:0;color:var(--af-tinta);overflow-wrap:anywhere}
+.tl-card dd a{color:var(--af-verde-texto);font-weight:600}
+.tl-muted{color:var(--af-texto-2)}
+.tl-alert{margin:0;padding:10px 12px;border-radius:12px;background:var(--af-atraso-bg);color:var(--af-atraso-txt);font:600 13px/1.3 var(--af-font-texto)}
+.tl-wa{margin-top:auto;display:flex;justify-content:center;align-items:center;min-height:44px}

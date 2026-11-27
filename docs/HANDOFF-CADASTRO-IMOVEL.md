@@ -21,3 +21,20 @@ Valores em centavos (`rent`, `condo`, `iptu`). A foto é reduzida no navegador p
 4. Testes: isolamento entre tenants nas novas colunas e no bucket.
 
 Arquivos: `app.js` (bloco "Cadastro de imóvel em 3 etapas", `propertyList`, submit), `model.js` (demo), `style.css` (blocos `.pf-*` e `.pl-*`).
+
+---
+
+# Cadastro de locatário em 3 etapas (27/11/2026)
+
+O formulário "Novo locatário" usa o mesmo esquema de etapas (código compartilhado `pf*`; endereço reaproveitado em `pfAddr`).
+
+| Etapa | Campos |
+|---|---|
+| Dados pessoais | pessoa física/jurídica, nome* (ou razão social), CPF/CNPJ (máscara e dígito verificador), nascimento, estado civil, RG, profissão (só PF), responsável legal (só PJ), renda/faturamento mensal |
+| Contato | WhatsApp (máscara), e-mail, melhor forma de contato, contato de emergência (nome e telefone) |
+| Endereço e garantia | endereço atual opcional com busca por CEP (número obrigatório se a rua for preenchida, ou "Sem número"), garantia (sem garantia, caução com valor, fiador com nome/CPF/telefone, seguro fiança ou título com empresa/apólice), observações |
+
+Na carteira online continua indo só `name` e `phone` para `renters`. Proposta para o Codex (hipótese, precisa de aprovação):
+1. Colunas em `public.renters`: `kind text check in ('PF','PJ')`, `doc text`, `birth date`, `marital text`, `rg text`, `job text`, `rep text`, `income_cents bigint`, `email text`, `contact_pref text`, `emergency_name text`, `emergency_phone text`, endereço (mesmas colunas do imóvel), `notes text`.
+2. Garantia: tabela `renter_guarantees` (ou no contrato, que é onde juridicamente ela pertence) com `type`, `value_cents`, `guarantor_name`, `guarantor_doc`, `guarantor_phone`, `policy_ref`.
+3. **CPF/CNPJ e dados do fiador são dados pessoais (LGPD)**: RLS por tenant, nada em logs, mostrar mascarado na interface (a lista já mostra `***.456.789-**`).

@@ -563,6 +563,31 @@ dialog.dlg-wide #error:empty{display:none}
 .pl-foot strong{font:var(--af-valor);font-size:18px;color:var(--af-tinta);font-variant-numeric:tabular-nums}
 .pl-foot strong small{font:var(--af-pequeno);color:var(--af-texto-2);margin-left:2px}
 .pl-who{font:var(--af-pequeno);color:var(--af-texto-2)}
+/* Cadastro e lista de locatários (Claude · design/ux-ui) */
+.pf-field textarea{width:100%;margin:0;min-height:96px;padding:12px 14px;border:1px solid var(--af-borda-campo);border-radius:var(--af-raio-campo);font:var(--af-corpo);color:var(--af-tinta);background:var(--af-branco);resize:vertical}
+.pf-field textarea:focus-visible{outline:2px solid var(--af-verde);outline-offset:1px;border-color:var(--af-verde)}
+.pf-field>span:first-child b{font:inherit}
+.pf-mini input:invalid:not(:placeholder-shown):not(:focus),.pf-field input:user-invalid{border-color:var(--af-atraso-txt)}
+.tf-g[hidden],.tf-pf[hidden],.tf-pj[hidden]{display:none}
+.tf-g.pf-field{gap:10px}
+.tl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:8px}
+.tl-card{background:var(--af-branco);border:1px solid var(--af-borda-suave);border-radius:var(--af-raio-cartao);padding:16px;display:flex;flex-direction:column;gap:12px}
+.tl-head{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center}
+.tl-av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--af-verde-claro);color:var(--af-verde-texto);font:700 15px/1 var(--af-font-texto)}
+.tl-card h3{font:var(--af-h2);color:var(--af-tinta);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl-head small{font:var(--af-pequeno);color:var(--af-texto-2)}
+.tl-st{padding:5px 10px;border-radius:999px;font:600 12px/1 var(--af-font-texto);white-space:nowrap}
+.tl-st.is-ok{background:var(--af-pago-bg);color:var(--af-pago-txt)}
+.tl-st.is-late{background:var(--af-atraso-bg);color:var(--af-atraso-txt)}
+.tl-st.is-none{background:var(--af-trilho);color:var(--af-texto-3)}
+.tl-card dl{margin:0;display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--af-divisor)}
+.tl-card dl div{display:grid;grid-template-columns:76px minmax(0,1fr);gap:8px;font:var(--af-pequeno)}
+.tl-card dt{color:var(--af-texto-2)}
+.tl-card dd{margin:0;color:var(--af-tinta);overflow-wrap:anywhere}
+.tl-card dd a{color:var(--af-verde-texto);font-weight:600}
+.tl-muted{color:var(--af-texto-2)}
+.tl-alert{margin:0;padding:10px 12px;border-radius:12px;background:var(--af-atraso-bg);color:var(--af-atraso-txt);font:600 13px/1.3 var(--af-font-texto)}
+.tl-wa{margin-top:auto;display:flex;justify-content:center;align-items:center;min-height:44px}
 </style>
   <link rel="icon" href="/favicon.ico" sizes="32x32">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -603,10 +628,10 @@ function cash(db,month){
 function demo(){
  const db=blank(), m=current();
  const places=[['Residencial Aurora · 204','Apartamento','Av. das Palmeiras, 120',185000],['Casa Jardim das Flores','Casa','Rua das Flores, 42',240000],['Galpão Horizonte','Galpão','Rua Industrial, 610',360000],['Edifício Atlântico · 301','Apartamento','Av. Beira-Mar, 85',210000]];
- const people=['Ana Martins','Carlos Almeida','Marina Costa','Rafael Lima'];
+ const people=['Ana Martins','Carlos Almeida','Costa & Lima Logística','Rafael Lima'];
  places.forEach(([name,type,address,amount],i)=>{
  const x=[{purpose:'Residencial',area:68,bedrooms:2,bathrooms:1,parking:1,district:'Centro'},{purpose:'Residencial',area:120,bedrooms:3,bathrooms:2,parking:2,district:'Jardim das Flores'},{purpose:'Comercial',area:850,bathrooms:2,parking:4,district:'Distrito Industrial'},{purpose:'Residencial',area:74,bedrooms:2,bathrooms:2,parking:1,furnished:true,district:'Beira-Mar'}][i];
- db.properties.push({id:'im'+i,name,type,address:address+' – '+x.district+', Cidade Exemplo/SP',rent:amount,...x});db.people.push({id:'pe'+i,name:people[i],phone:''});
+ db.properties.push({id:'im'+i,name,type,address:address+' – '+x.district+', Cidade Exemplo/SP',rent:amount,...x});db.people.push({id:'pe'+i,name:people[i],phone:'',kind:i===2?'PJ':'PF',email:people[i].toLowerCase().normalize('NFD').replace(/\p{M}/gu,'').replace(/[^a-z]+/g,'.')+'@exemplo.com',pref:'WhatsApp',guarantee:['Caução','Fiador','Seguro fiança','Sem garantia'][i],gValue:i===0?amount*2:0,gName:i===1?'Pedro Almeida':''});
  db.leases.push({id:'ct'+i,property:'im'+i,person:'pe'+i,start:shift(m,-5)+'-01',end:shift(m,6)+'-28',amount,day:[5,10,20,28][i]});
  for(let n=-5;n<=0;n++){const period=shift(m,n),date=period+'-'+String([5,10,20,28][i]).padStart(2,'0');if(n<0||i===0&&date<=today())db.payments.push({key:'ct'+i+'/'+period,date,amount})}
  });
@@ -953,7 +978,7 @@ function render(){
  }else{
  const [label,act,sub]=meta[page];h='<div class="row sectionhead"><div><h1>'+page+'</h1><p class="sub">'+sub+'</p></div>'+(act?btn(act,'＋ '+label,'primary'):'')+'</div>';
  if(page==='Imóveis')h+=propertyList();
- if(page==='Locatários')h+=panel('Contatos',db.people.map(p=>item(p.name,p.phone||'Sem telefone')).join('')||empty('Cadastre um locatário para vinculá-lo ao imóvel.'));
+ if(page==='Locatários')h+=personList();
  if(page==='Contratos')h+=panel('Locações',db.leases.map(l=>item(pname(l.property),person(l.person)+' · '+date(l.start)+' a '+date(l.end),money(l.amount),'Vencimento no dia '+l.day)).join('')||empty('O contrato vincula um imóvel a um locatário e gera as cobranças mensais.'));
  if(page==='Cobranças')h+=monthPick()+'<label class="filters">Situação <select id="filter">'+['Todas','Em atraso','A vencer','Pago'].map(v=>'<option '+(filter===v?'selected':'')+'>'+v+'</option>').join('')+'</select></label>'+panel('Aluguéis de '+monthName(month),chargeRows(cs.filter(c=>filter==='Todas'||c.status===filter),true));
  if(page==='Manutenções')h+=panel('Agenda',db.jobs.slice().sort((a,b)=>Number(a.done)-Number(b.done)||a.date.localeCompare(b.date)).map(j=>item(j.name,pname(j.property)+' · '+date(j.date),badge(j.done?'Concluída':'Agendada'),j.done?'':btn('finish|'+j.id,'Concluir'))).join('')||empty('Nenhuma manutenção agendada.'));
@@ -970,13 +995,13 @@ const amount=()=>input('Valor (R$)','amount','number','min=".01" max="999999999"
 const pfTypes=['Apartamento','Casa','Sala comercial','Loja','Galpão','Terreno','Outro'],pfBusiness=['Sala comercial','Loja','Galpão'];
 const pfUF='AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
 const pfSteps=['Identificação','Localização','Valores'];
-let pfStep=0,pfSeen=0;
+let pfStep=0,pfSeen=0,pfMax=2,pfSave='Salvar imóvel';
 const pfChips=(name,items,val,req,label)=>'<div class="pf-chips" role="radiogroup" aria-label="'+label+'">'+items.map((v,i)=>'<label class="pf-chip"><input type="radio" name="'+name+'" value="'+enc(v)+'"'+(v===val?' checked':'')+(req&&!i?' required':'')+'><span>'+enc(v)+'</span></label>').join('')+'</div>';
 const pfField=(label,name,attrs='',hint='',cls='')=>'<label class="pf-field '+cls+'"><span>'+label+'</span><input name="'+name+'" '+attrs+'>'+(hint?'<small>'+hint+'</small>':'')+'</label>';
 const pfMoney=(label,name,req,hint='')=>'<label class="pf-field"><span>'+label+'</span><span class="pf-money"><i aria-hidden="true">R$</i><input name="'+name+'" type="number" inputmode="decimal" step=".01" min="0" max="999999999"'+(req?' required min=".01"':'')+' placeholder="0,00"></span>'+(hint?'<small>'+hint+'</small>':'')+'</label>';
 const pfOpt=' <em>(opcional)</em>';
 function propertyForm(){
- pfStep=0;pfSeen=0;
+ pfStep=0;pfSeen=0;pfMax=2;pfSave='Salvar imóvel';
  const steps='<ol class="pf-steps">'+pfSteps.map((s,i)=>'<li><button type="button" data-pf-go="'+i+'"'+(i?' disabled':'')+' aria-current="'+(i?'false':'step')+'"><b>'+(i+1)+'</b><span>'+s+'</span></button></li>').join('')+'</ol>';
  const id='<fieldset class="pf-step" data-step="0"><legend>Identificação do imóvel</legend>'
   +pfField('Nome do imóvel','name','required maxlength="80" autocomplete="off" placeholder="Ex.: Apto 204 · Residencial Aurora"','Como você chama este imóvel no dia a dia.')
@@ -989,15 +1014,7 @@ function propertyForm(){
   +pfField('Matrícula ou inscrição do IPTU'+pfOpt,'registry','maxlength="40" autocomplete="off"','Ajuda a achar o imóvel em documentos e boletos.')
   +'</fieldset>';
  const loc='<fieldset class="pf-step" data-step="1" hidden><legend>Localização do imóvel</legend>'
-  +'<div class="pf-row pf-cep">'+pfField('CEP','cep','required inputmode="numeric" autocomplete="postal-code" maxlength="9" pattern="\\d{5}-?\\d{3}" placeholder="00000-000"','<span id="pf-cep-msg" role="status">Digite o CEP para preencher o endereço.</span>')
-  +'<a class="pf-link" href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener">Não sei o CEP</a></div>'
-  +pfField('Rua ou avenida','street','required maxlength="120" autocomplete="address-line1"')
-  +'<div class="pf-row pf-num">'+pfField('Número','number','required maxlength="10" inputmode="numeric" autocomplete="off"')
-  +'<label class="pf-sn"><input type="checkbox" name="noNumber" value="1"> Sem número</label></div>'
-  +pfField('Complemento'+pfOpt,'complement','maxlength="60" placeholder="Apto, bloco, sala, fundos"')
-  +pfField('Bairro','district','required maxlength="80"')
-  +'<div class="pf-row pf-city">'+pfField('Cidade','city','required maxlength="80" autocomplete="address-level2"')
-  +'<label class="pf-field pf-uf"><span>UF</span><select name="uf" required><option value="">—</option>'+pfUF.map(u=>'<option>'+u+'</option>').join('')+'</select></label></div>'
+  +pfAddr(true)
   +pfField('Ponto de referência'+pfOpt,'reference','maxlength="100"','Útil para prestadores de manutenção.')
   +'</fieldset>';
  const val='<fieldset class="pf-step" data-step="2" hidden><legend>Valores do imóvel</legend>'
@@ -1014,12 +1031,13 @@ function pfGo(n){
  pfStep=n;pfSeen=Math.max(pfSeen,n);
  pfEl().querySelectorAll('.pf-step').forEach(s=>s.hidden=+s.dataset.step!==n);
  pfEl().querySelectorAll('[data-pf-go]').forEach(b=>{const i=+b.dataset.pfGo;b.disabled=i>pfSeen;b.setAttribute('aria-current',i===n?'step':'false');b.parentNode.classList.toggle('is-done',i<n)});
- pfEl().querySelector('[data-pf-back]').hidden=!n;pfEl().querySelector('.pf-next').textContent=n===2?'Salvar imóvel':'Continuar';
+ pfEl().querySelector('[data-pf-back]').hidden=!n;pfEl().querySelector('.pf-next').textContent=n===pfMax?pfSave:'Continuar';
  $('#error').textContent='';$('dialog').scrollTop=0;
- pfEl().querySelector('.pf-step:not([hidden]) input:not([type=hidden]):not([type=file]):not([type=checkbox])')?.focus({preventScroll:true});
+ pfEl().querySelector('.pf-step:not([hidden]) input:not([type=hidden]):not([type=file]):not([type=checkbox]):not([type=radio])')?.focus({preventScroll:true});
 }
 function pfCheck(n){
  const step=pfEl().querySelector('.pf-step[data-step="'+n+'"]');
+ if(action==='person'){const E=pfEl().elements;E.number.required=!!E.street.value.trim()&&!E.noNumber.checked}
  for(const el of step.querySelectorAll('input,select')){
   if(el.type==='text')el.value=el.value.trim();
   if(!el.checkValidity()){if(pfStep!==n)pfGo(n);el.reportValidity();if(el.type!=='radio')el.focus();return false}
@@ -1082,7 +1100,7 @@ document.addEventListener('change',e=>{
  if(!t.closest?.('.pf-step'))return;
  if(t.id==='pf-file'){pfPhoto(t.files[0]);t.value=''}
  if(t.name==='type'){const p=pfEl().querySelector('[name=purpose][value="'+(pfBusiness.includes(t.value)?'Comercial':'Residencial')+'"]');if(p)p.checked=true}
- if(t.name==='noNumber'){const n=pfEl().elements.number;n.disabled=t.checked;n.required=!t.checked;if(t.checked)n.value='';else n.focus()}
+ if(t.name==='noNumber'){const n=pfEl().elements.number;n.disabled=t.checked;n.required=!t.checked&&action==='property';if(t.checked)n.value='';else n.focus()}
  if(t.name==='payer')pfTotals();
  if(t.name==='uf')delete t.dataset.auto;
 });
@@ -1101,6 +1119,110 @@ function propertyList(){
   const value=l?l.amount:p.rent;
   return '<article class="pl-card"><div class="pl-media">'+(p.photo?'<img src="'+enc(p.photo)+'" alt="Fachada de '+enc(p.name)+'" loading="lazy">':'<span class="pl-ph" aria-hidden="true">'+icon(1)+'</span>')+'<span class="pl-status '+(l?'is-busy':'is-free')+'">'+(l?'Alugado':'Disponível')+'</span></div><div class="pl-body"><h3>'+enc(p.name)+'</h3><p>'+enc(p.address)+'</p>'+(feats?'<small>'+enc(feats)+'</small>':'')+'<div class="pl-foot"><span class="pl-type">'+enc(p.type)+'</span>'+(value?'<strong>'+money(value)+'<small>/mês</small></strong>':'')+'</div>'+(who?'<small class="pl-who">Locatário: '+enc(who)+'</small>':'')+'</div></article>'}).join('')+'</div>';
 }
+// Cadastro de locatário em 3 etapas: dados pessoais, contato e endereço/garantia (Claude · design/ux-ui).
+const tfGuarantees=['Sem garantia','Caução','Fiador','Seguro fiança','Título de capitalização'];
+const tfMarital=['Solteiro(a)','Casado(a)','União estável','Divorciado(a)','Viúvo(a)'];
+const tfDigits=v=>String(v||'').replace(/\D/g,'');
+const tfPhoneMask=v=>{let d=tfDigits(v);if(d.length>11&&d.startsWith('55'))d=d.slice(2);d=d.slice(0,11);return d.length<3?d:'('+d.slice(0,2)+') '+(d.length>10?d.slice(2,7)+'-'+d.slice(7):d.length>6?d.slice(2,6)+'-'+d.slice(6):d.slice(2))};
+const tfDocMask=(v,pj)=>{const d=tfDigits(v).slice(0,pj?14:11);return pj?d.replace(/^(\d{2})(\d)/,'$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2'):d.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2')};
+function tfDocOk(v){
+ const d=tfDigits(v);if(!d)return true;if(/^(\d)\1+$/.test(d))return false;
+ const dv=(s,w)=>{const r=s.split('').reduce((n,c,i)=>n+ +c*w[i],0)%11;return r<2?0:11-r};
+ if(d.length===11){const w=n=>Array.from({length:n},(_,i)=>n+1-i);return dv(d.slice(0,9),w(9))===+d[9]&&dv(d.slice(0,10),w(10))===+d[10]}
+ if(d.length===14){const w1=[5,4,3,2,9,8,7,6,5,4,3,2],w2=[6,...w1];return dv(d.slice(0,12),w1)===+d[12]&&dv(d.slice(0,13),w2)===+d[13]}
+ return false;
+}
+// Endereço reutilizável (CEP com busca, rua, número ou "Sem número", complemento, bairro, cidade/UF).
+const pfAddr=req=>{const r=req?'required ':'';return '<div class="pf-row pf-cep">'+pfField('CEP'+(req?'':pfOpt),'cep',r+'inputmode="numeric" autocomplete="postal-code" maxlength="9" pattern="\\d{5}-?\\d{3}" placeholder="00000-000"','<span id="pf-cep-msg" role="status">Digite o CEP para preencher o endereço.</span>')
+ +'<a class="pf-link" href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener">Não sei o CEP</a></div>'
+ +pfField('Rua ou avenida','street',r+'maxlength="120" autocomplete="address-line1"')
+ +'<div class="pf-row pf-num">'+pfField('Número','number',r+'maxlength="10" inputmode="numeric" autocomplete="off"')
+ +'<label class="pf-sn"><input type="checkbox" name="noNumber" value="1"> Sem número</label></div>'
+ +pfField('Complemento'+pfOpt,'complement','maxlength="60" placeholder="Apto, bloco, sala, fundos"')
+ +pfField('Bairro','district',r+'maxlength="80"')
+ +'<div class="pf-row pf-city">'+pfField('Cidade','city',r+'maxlength="80" autocomplete="address-level2"')
+ +'<label class="pf-field pf-uf"><span>UF</span><select name="uf" '+r+'><option value="">—</option>'+pfUF.map(u=>'<option>'+u+'</option>').join('')+'</select></label></div>'};
+const tfSel=(label,name,items)=>'<label class="pf-field"><span>'+label+'</span><select name="'+name+'"><option value="">Selecione</option>'+items.map(v=>'<option>'+enc(v)+'</option>').join('')+'</select></label>';
+function tenantForm(){
+ pfStep=0;pfSeen=0;pfMax=2;pfSave='Salvar locatário';
+ const steps='<ol class="pf-steps">'+['Dados pessoais','Contato','Endereço e garantia'].map((s,i)=>'<li><button type="button" data-pf-go="'+i+'"'+(i?' disabled':'')+' aria-current="'+(i?'false':'step')+'"><b>'+(i+1)+'</b><span>'+s+'</span></button></li>').join('')+'</ol>';
+ const who='<fieldset class="pf-step" data-step="0"><legend>Dados do locatário</legend>'
+  +'<div class="pf-field"><span>Quem vai alugar</span>'+pfChips('kind',['Pessoa física','Pessoa jurídica'],'Pessoa física',false,'Quem vai alugar')+'</div>'
+  +'<label class="pf-field"><span id="tf-name-l">Nome completo</span><input name="name" required maxlength="100" autocomplete="off" placeholder="Como está no documento"></label>'
+  +'<label class="pf-field"><span><b id="tf-doc-l">CPF</b>'+pfOpt+'</span><input name="doc" inputmode="numeric" maxlength="18" autocomplete="off" placeholder="000.000.000-00"><small>Vai no contrato. Conferimos se os números são válidos.</small></label>'
+  +'<div class="pf-row pf-two tf-pf">'+pfField('Data de nascimento'+pfOpt,'birth','type="date" max="'+today()+'" min="1900-01-01"')+tfSel('Estado civil'+pfOpt,'marital',tfMarital)+'</div>'
+  +'<div class="pf-row pf-two tf-pf">'+pfField('RG'+pfOpt,'rg','maxlength="20" autocomplete="off"')+pfField('Profissão'+pfOpt,'job','maxlength="60"')+'</div>'
+  +'<div class="tf-pj" hidden>'+pfField('Responsável legal'+pfOpt,'rep','maxlength="100" disabled','Quem assina pela empresa.')+'</div>'
+  +pfMoney('<b id="tf-income-l">Renda mensal</b>'+pfOpt,'income',false,'<span id="tf-income-h">Referência comum: o aluguel não passar de 30% da renda.</span>')
+  +'</fieldset>';
+ const contact='<fieldset class="pf-step" data-step="1" hidden><legend>Contato</legend>'
+  +pfField('WhatsApp com DDD','phone','type="tel" inputmode="tel" autocomplete="off" maxlength="16" pattern="\\(\\d{2}\\) \\d{4,5}-\\d{4}" placeholder="(11) 98765-4321"','Usado para enviar lembretes de cobrança. Recomendado.')
+  +pfField('E-mail'+pfOpt,'email','type="email" maxlength="120" autocomplete="off" placeholder="nome@exemplo.com"')
+  +'<div class="pf-field"><span>Melhor forma de contato</span>'+pfChips('pref',['WhatsApp','Ligação','E-mail'],'WhatsApp',false,'Melhor forma de contato')+'</div>'
+  +'<div class="pf-field"><span>Contato de emergência'+pfOpt+'</span><div class="pf-row pf-two">'
+  +'<label class="pf-mini"><small>Nome</small><input name="emName" maxlength="100" autocomplete="off"></label>'
+  +'<label class="pf-mini"><small>Telefone</small><input name="emPhone" type="tel" inputmode="tel" maxlength="16" autocomplete="off" pattern="\\(\\d{2}\\) \\d{4,5}-\\d{4}"></label></div></div>'
+  +'</fieldset>';
+ const addr='<fieldset class="pf-step" data-step="2" hidden><legend>Endereço e garantia</legend>'
+  +'<div class="pf-field"><span>Endereço atual'+pfOpt+'</span><small>Onde o locatário mora hoje. Pode deixar em branco se ele vai morar no imóvel alugado.</small></div>'
+  +pfAddr(false)
+  +'<div class="pf-field"><span>Garantia do contrato</span>'+pfChips('guarantee',tfGuarantees,'Sem garantia',false,'Garantia do contrato')+'</div>'
+  +'<div class="tf-g" data-g="Caução" hidden>'+pfMoney('Valor da caução','gValue',false,'O usual é até 3 meses de aluguel.')+'</div>'
+  +'<div class="tf-g pf-field" data-g="Fiador" hidden><span>Dados do fiador</span>'
+  +'<label class="pf-mini"><small>Nome completo</small><input name="gName" maxlength="100" autocomplete="off"></label>'
+  +'<div class="pf-row pf-two"><label class="pf-mini"><small>CPF</small><input name="gDoc" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="000.000.000-00"></label>'
+  +'<label class="pf-mini"><small>Telefone</small><input name="gPhone" type="tel" inputmode="tel" maxlength="16" autocomplete="off" pattern="\\(\\d{2}\\) \\d{4,5}-\\d{4}"></label></div></div>'
+  +'<div class="tf-g" data-g="Seguro fiança|Título de capitalização" hidden>'+pfField('Empresa e número da apólice'+pfOpt,'gRef','maxlength="80" autocomplete="off"')+'</div>'
+  +'<label class="pf-field"><span>Observações'+pfOpt+'</span><textarea name="notes" rows="3" maxlength="500" placeholder="Ex.: tem um cachorro pequeno; prefere contato à tarde"></textarea></label>'
+  +(wallet==='cloud'?'<p class="pf-note">Na carteira online, por enquanto ficam salvos o nome e o WhatsApp. Documento, endereço e garantia ficam para a próxima atualização do banco.</p>':'')
+  +'</fieldset>';
+ return steps+who+contact+addr+'<div class="pf-foot"><button type="button" class="pf-back" data-pf-back hidden>Voltar</button><button class="primary pf-next">Continuar</button></div>';
+}
+function tfKind(pj){
+ const f=pfEl(),E=f.elements;
+ $('#tf-name-l').textContent=pj?'Razão social':'Nome completo';$('#tf-doc-l').textContent=pj?'CNPJ':'CPF';$('#tf-income-l').textContent=pj?'Faturamento mensal':'Renda mensal';
+ E.doc.placeholder=pj?'00.000.000/0000-00':'000.000.000-00';E.doc.value=tfDocMask(E.doc.value,pj);tfDocCheck(E.doc);
+ f.querySelectorAll('.tf-pf').forEach(b=>{b.hidden=pj;b.querySelectorAll('input,select').forEach(i=>i.disabled=pj)});
+ f.querySelectorAll('.tf-pj').forEach(b=>{b.hidden=!pj;b.querySelectorAll('input').forEach(i=>i.disabled=!pj)});
+}
+function tfDocCheck(el){const d=tfDigits(el.value),pj=el.name==='doc'&&pfEl().querySelector('[name=kind]:checked')?.value==='Pessoa jurídica';el.setCustomValidity(!d||tfDocOk(d)&&d.length===(pj?14:11)?'':(pj?'CNPJ':'CPF')+' inválido. Confira os números.')}
+function tfGuarantee(v){pfEl().querySelectorAll('.tf-g').forEach(b=>{const on=b.dataset.g.split('|').includes(v);b.hidden=!on;b.querySelectorAll('input').forEach(i=>i.disabled=!on)})}
+function tfData(f){
+ const g=n=>(f.get(n)||'').toString().trim(),pj=g('kind')==='Pessoa jurídica',noNumber=!!f.get('noNumber'),number=noNumber?'S/N':g('number'),cep=tfDigits(g('cep')),gu=g('guarantee')||'Sem garantia';
+ const address=g('street')?[g('street'),number].filter(Boolean).join(', ')+(g('complement')?' · '+g('complement'):'')+(g('district')?' – '+g('district'):'')+(g('city')?', '+g('city')+(g('uf')?'/'+g('uf'):''):''):'';
+ return {kind:pj?'PJ':'PF',name:g('name'),doc:tfDigits(g('doc')),birth:pj?'':g('birth'),marital:pj?'':g('marital'),rg:pj?'':g('rg'),job:pj?'':g('job'),rep:pj?g('rep'):'',income:pfCents(g('income')),
+  phone:tfDigits(g('phone')),email:g('email').toLowerCase(),pref:g('pref')||'WhatsApp',emName:g('emName'),emPhone:tfDigits(g('emPhone')),
+  cep:cep?cep.slice(0,5)+'-'+cep.slice(5):'',street:g('street'),number:g('street')?number:'',noNumber,complement:g('complement'),district:g('district'),city:g('city'),uf:g('uf'),address,
+  guarantee:gu,gValue:gu==='Caução'?pfCents(g('gValue')):0,gName:gu==='Fiador'?g('gName'):'',gDoc:gu==='Fiador'?tfDigits(g('gDoc')):'',gPhone:gu==='Fiador'?tfDigits(g('gPhone')):'',gRef:/Seguro|Título/.test(gu)?g('gRef'):'',notes:g('notes')};
+}
+document.addEventListener('input',e=>{
+ const t=e.target;if(action!=='person'||!t.closest?.('.pf-step'))return;
+ if(['phone','emPhone','gPhone'].includes(t.name))t.value=tfPhoneMask(t.value);
+ if(t.name==='doc'||t.name==='gDoc'){t.value=tfDocMask(t.value,t.name==='doc'&&pfEl().querySelector('[name=kind]:checked')?.value==='Pessoa jurídica');tfDocCheck(t)}
+});
+document.addEventListener('change',e=>{
+ const t=e.target;if(action!=='person'||!t.closest?.('.pf-step'))return;
+ if(t.name==='kind')tfKind(t.value==='Pessoa jurídica');
+ if(t.name==='guarantee')tfGuarantee(t.value);
+});
+// Lista de locatários em cartões, com situação do contrato e atalho de WhatsApp.
+function personList(){
+ if(!db.people.length)return panel('Seus locatários',empty('Cadastre um locatário para vinculá-lo ao imóvel.'));
+ const now=today(),cs=charges(db,month);
+ return '<div class="tl-grid">'+db.people.map(p=>{
+  const l=db.leases.find(l=>l.person===p.id&&l.start<=now&&l.end>=now),prop=l&&db.properties.find(x=>x.id===l.property);
+  const late=cs.filter(c=>c.person?.id===p.id&&c.status==='Em atraso');
+  const st=late.length?['is-late','Em atraso']:l?['is-ok','Contrato ativo']:['is-none','Sem contrato'];
+  const ini=p.name.split(/\s+/).filter(Boolean).map(w=>w[0]).filter((_,i,a)=>!i||i===a.length-1).join('').toUpperCase();
+  const d=tfDigits(p.doc),doc=d.length===11?'CPF ***.'+d.slice(3,6)+'.'+d.slice(6,9)+'-**':d.length===14?'CNPJ '+tfDocMask(d,true):'';
+  const ph=tfDigits(p.phone),wa=ph?'https://wa.me/'+(ph.length<=11?'55':'')+ph:'';
+  const rows=[ph?['Telefone','<a href="'+enc(wa)+'" target="_blank" rel="noopener">'+enc(tfPhoneMask(ph))+'</a>']:['Telefone','<span class="tl-muted">Sem telefone</span>'],p.email?['E-mail','<a href="mailto:'+enc(p.email)+'">'+enc(p.email)+'</a>']:null,['Imóvel',prop?enc(prop.name)+' · '+money(l.amount)+'/mês':'<span class="tl-muted">Nenhum no momento</span>'],p.guarantee&&p.guarantee!=='Sem garantia'?['Garantia',enc(p.guarantee)+(p.gValue?' · '+money(p.gValue):'')+(p.gName?' · '+enc(p.gName):'')]:null].filter(Boolean);
+  return '<article class="tl-card"><div class="tl-head"><span class="tl-av" aria-hidden="true">'+enc(ini||'?')+'</span><div><h3>'+enc(p.name)+'</h3><small>'+(p.kind==='PJ'?'Pessoa jurídica':'Pessoa física')+(doc?' · '+doc:'')+'</small></div><span class="tl-st '+st[0]+'">'+st[1]+'</span></div>'
+   +'<dl>'+rows.map(([k,v])=>'<div><dt>'+k+'</dt><dd>'+v+'</dd></div>').join('')+'</dl>'
+   +(late.length?'<p class="tl-alert">'+late.length+' cobrança'+(late.length>1?'s':'')+' em atraso · '+money(late.reduce((n,c)=>n+c.amount,0))+'</p>':'')
+   +(wa?'<a class="button tl-wa" href="'+enc(wa+'?text='+encodeURIComponent('Olá, '+p.name.split(' ')[0]+'!'))+'" target="_blank" rel="noopener">Conversar no WhatsApp</a>':'')
+   +'</article>'}).join('')+'</div>';
+}
 function open(act){action=act;const [type,id]=act.split('|');let title,fields;
  if(type==='demoEntry'){entry='app';wallet='demo';read();render();return}
  if(type==='logout'){if($('dialog').open)$('dialog').close();remember(null);tenants=[];walletChange('demo');toast('Sessão encerrada neste navegador.');return}
@@ -1112,13 +1234,13 @@ function open(act){action=act;const [type,id]=act.split('|');let title,fields;
  if(type==='chooseTenant'){showTenants().catch(err=>toast(err.message));return}
  if(type==='wallet'){title='Escolher carteira';fields=select('Carteira','wallet',[{id:'cloud',name:'Carteira online (Supabase)'},{id:'real',name:'Minha carteira local'},{id:'demo',name:'Demonstração'}])+'<small>Use a carteira online para acessar seus dados em outros dispositivos.</small>'}
  if(type==='property'){title='Novo imóvel';fields=propertyForm()}
- if(type==='person'){title='Novo locatário';fields=input('Nome completo','name')+'<label>WhatsApp com DDD (opcional)<input type="tel" name="phone" pattern="[+0-9() .-]{10,22}"></label>'}
+ if(type==='person'){title='Novo locatário';fields=tenantForm()}
  if(type==='lease'){if(!db.people.length||!db.properties.length)return toast('Cadastre pelo menos um imóvel e um locatário.');title='Novo contrato';fields=(wallet==='cloud'?select('Imóvel e unidade','unit',db.units.filter(u=>u.status==='available').map(u=>({id:u.id,name:pname(u.property_id)+' · '+u.name}))):select('Imóvel','property',db.properties))+select('Locatário','person',db.people)+input('Início','start','date')+input('Término','end','date')+amount()+input('Dia do vencimento','day','number','min="1" max="31"')+'<small>A primeira cobrança vence no primeiro dia de vencimento dentro da vigência.</small>'}
  if(type==='expense'){title='Lançar despesa';fields=input('Descrição','name')+amount()+input('Data do pagamento','date','date','value="'+today()+'" max="'+today()+'"')}
  if(type==='job'){if(!db.properties.length)return toast('Cadastre um imóvel para agendar o serviço.');title='Agendar manutenção';fields=select('Imóvel','property',db.properties)+input('Serviço','name')+input('Data agendada','date','date')}
  if(type==='finish'){title='Concluir manutenção';fields='<p>'+enc(db.jobs.find(j=>j.id===id).name)+'</p><label>Custo pago (R$)<input required name="amount" type="number" step=".01" min="0" max="999999999" value="0"></label>'+input('Data de conclusão','date','date','max="'+today()+'" value="'+today()+'"')}
  if(type==='pay'){const c=charges(db,month).find(x=>x.key===id);if(!c||c.paid)return;title='Registrar pagamento';fields='<p>'+enc(c.person.name)+' · '+enc(c.property.name)+'<br><strong>'+money(c.amount)+'</strong></p>'+input('Data do recebimento','date','date','value="'+today()+'" max="'+today()+'"')}
- $('#formTitle').textContent=title;$('#fields').innerHTML=fields;$('#error').textContent='';$('#form > .primary').hidden=type==='account'&&!!auth||type==='property';$('#form').noValidate=type==='property';$('dialog').classList.toggle('dlg-wide',type==='property');$('#form > .primary').textContent=type==='account'?'Entrar':'Salvar';if(!$('dialog').open)$('dialog').showModal();if(type==='property')pfGo(0);
+ $('#formTitle').textContent=title;$('#fields').innerHTML=fields;$('#error').textContent='';const wide=type==='property'||type==='person';$('#form > .primary').hidden=type==='account'&&!!auth||wide;$('#form').noValidate=wide;$('dialog').classList.toggle('dlg-wide',wide);$('#form > .primary').textContent=type==='account'?'Entrar':'Salvar';if(!$('dialog').open)$('dialog').showModal();if(wide)pfGo(0);
 }
 async function showTenants(){
  tenants=await onlineTenants();
@@ -1132,12 +1254,15 @@ async function activate(member){
  sessionStorage.setItem('af.activeTenant',tenantId);$('#wallet').value='cloud';$('dialog').close();render();
 }
 async function refreshOnline(){const id=tenantId;const data=await loadOnline(id);if(wallet==='cloud'&&tenantId===id){db=data;render()}}
-$('#form').onsubmit=async e=>{e.preventDefault();if(busy)return;if(action==='property'){if(pfStep<2){if(pfCheck(pfStep))pfGo(pfStep+1);return}for(let i=0;i<3;i++)if(!pfCheck(i))return}busy=true;$('#form .primary').disabled=true;const f=Object.fromEntries(new FormData(e.target)),[type,id]=action.split('|');try{
+$('#form').onsubmit=async e=>{e.preventDefault();if(busy)return;if(action==='property'||action==='person'){if(pfStep<pfMax){if(pfCheck(pfStep))pfGo(pfStep+1);return}for(let i=0;i<=pfMax;i++)if(!pfCheck(i))return}busy=true;$('#form .primary').disabled=true;const f=Object.fromEntries(new FormData(e.target)),[type,id]=action.split('|');try{
  if(type==='account'){if(!auth)await login(f.email.trim(),f.password);$('#fields').querySelector('[name=password]')?.remove();await showTenants();return}
  if(type==='tenant'){await activate(tenants.find(m=>m.tenant_id===f.tenant));return}
  if(type==='property'){const p=pfData(new FormData(e.target));
   if(wallet==='cloud'){await writeOnline(tenantId,type,id,p,db,month);$('dialog').close();try{await refreshOnline();toast('Imóvel salvo no Supabase.')}catch{toast('Salvo no Supabase. Clique em Atualizar para recarregar.')}return}
   db.properties.push({...p,id:crypto.randomUUID()});save();$('dialog').close();render();toast('Imóvel cadastrado.');return}
+ if(type==='person'){const p=tfData(new FormData(e.target));
+  if(wallet==='cloud'){await writeOnline(tenantId,type,id,p,db,month);$('dialog').close();try{await refreshOnline();toast('Locatário salvo no Supabase.')}catch{toast('Salvo no Supabase. Clique em Atualizar para recarregar.')}return}
+  db.people.push({...p,id:crypto.randomUUID()});save();$('dialog').close();render();toast('Locatário cadastrado.');return}
  for(const k in f)f[k]=f[k].trim();if('name' in f&&!f.name||'address' in f&&!f.address)throw Error('Preencha os campos obrigatórios.');
  if(type==='wallet'){$('dialog').close();walletChange(f.wallet);return}
  if(f.amount!==undefined)f.amount=Math.round(Number(f.amount)*100);
