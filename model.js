@@ -20,7 +20,8 @@ export function demo(){
  const places=[['Residencial Aurora · 204','Apartamento','Av. das Palmeiras, 120',185000],['Casa Jardim das Flores','Casa','Rua das Flores, 42',240000],['Galpão Horizonte','Galpão','Rua Industrial, 610',360000],['Edifício Atlântico · 301','Apartamento','Av. Beira-Mar, 85',210000]];
  const people=['Ana Martins','Carlos Almeida','Marina Costa','Rafael Lima'];
  places.forEach(([name,type,address,amount],i)=>{
- db.properties.push({id:'im'+i,name,type,address});db.people.push({id:'pe'+i,name:people[i],phone:''});
+ const x=[{purpose:'Residencial',area:68,bedrooms:2,bathrooms:1,parking:1,district:'Centro'},{purpose:'Residencial',area:120,bedrooms:3,bathrooms:2,parking:2,district:'Jardim das Flores'},{purpose:'Comercial',area:850,bathrooms:2,parking:4,district:'Distrito Industrial'},{purpose:'Residencial',area:74,bedrooms:2,bathrooms:2,parking:1,furnished:true,district:'Beira-Mar'}][i];
+ db.properties.push({id:'im'+i,name,type,address:address+' – '+x.district+', Cidade Exemplo/SP',rent:amount,...x});db.people.push({id:'pe'+i,name:people[i],phone:''});
  db.leases.push({id:'ct'+i,property:'im'+i,person:'pe'+i,start:shift(m,-5)+'-01',end:shift(m,6)+'-28',amount,day:[5,10,20,28][i]});
  for(let n=-5;n<=0;n++){const period=shift(m,n),date=period+'-'+String([5,10,20,28][i]).padStart(2,'0');if(n<0||i===0&&date<=today())db.payments.push({key:'ct'+i+'/'+period,date,amount})}
  });
