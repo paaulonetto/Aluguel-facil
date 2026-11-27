@@ -528,3 +528,27 @@ dialog.dlg-wide #error:empty{display:none}
  main #view.view-wide .pl-grid,main #view.view-wide .tl-grid,main #view.view-wide .lc-grid{gap:20px}
 }
 @media(min-width:1600px){main #view.view-wide .pl-grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}}
+/* Cobranças, Manutenções e Financeiro (Claude · design/ux-ui) */
+.lt-month{display:flex;align-items:center;gap:8px;margin:0;font:500 14px/1 var(--af-font-texto);color:var(--af-texto-2)}
+.lt-month input{width:auto;margin:0;min-height:44px;padding:8px 14px;border:1px solid var(--af-borda-campo);border-radius:999px;background:var(--af-branco);font:var(--af-corpo);color:var(--af-tinta)}
+.lt-bar{row-gap:10px}
+.lt-bar .lt-chips{margin-left:auto}
+.ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:12px}
+.ch-card{background:var(--af-branco);border:1px solid var(--af-borda-suave);border-radius:var(--af-raio-cartao);padding:16px;display:flex;flex-direction:column;gap:12px}
+.ch-card[hidden]{display:none}
+.ch-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.ch-head h2{font:var(--af-h2);color:var(--af-tinta)}
+.ch-head small{font:var(--af-pequeno);color:var(--af-texto-2)}
+.ch-amt{display:grid;gap:2px;padding-top:12px;border-top:1px solid var(--af-divisor)}
+.ch-amt strong{font:var(--af-valor);font-size:24px;color:var(--af-tinta);font-variant-numeric:tabular-nums}
+.ch-amt span{font:var(--af-pequeno);color:var(--af-texto-2)}
+.ch-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.ch-act>*{flex:1;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.mt-when{margin:0;padding-top:12px;border-top:1px solid var(--af-divisor);font:var(--af-pequeno);color:var(--af-texto-3)}
+.fin-grid{display:grid;gap:16px;margin-top:12px}
+.fin-grid>.panel{margin-top:0}
+.fin-row[hidden]{display:none}
+.fin-in{color:var(--af-pago-txt)}
+.fin-out{color:var(--af-atraso-txt)}
+@media(max-width:599px){.lt-month{flex:1}.lt-month input{flex:1}.lt-bar .lt-chips{margin-left:0}}
+@media(min-width:1200px){.fin-grid{grid-template-columns:minmax(0,7fr) minmax(0,5fr);align-items:start}}

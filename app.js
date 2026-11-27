@@ -326,7 +326,7 @@ function render(){
  $('#crumb').textContent=page;$('#nav').innerHTML=pages.map((p,i)=>'<a href="#'+p+'" class="'+(page===p?'active':'')+'">'+icon(i)+p+'</a>').join('');
  $('#switch').textContent=(wallet==='cloud'?onlineName:wallet==='demo'?'Demonstração':'Minha carteira local')+' ▾';
  const cs=charges(db,month),fin=cash(db,month),sum=list=>list.reduce((a,c)=>a+c.amount,0);
- $('#view').classList.toggle('view-wide',['Painel','Imóveis','Locatários','Contratos'].includes(page));if(page!==ltPage){ltPage=page;ltQ='';ltSt='Todos'}if(page==='Painel'){ $('#view').innerHTML=homePage(cs,fin); renderTabbar(page); return; }
+ $('#view').classList.toggle('view-wide',['Painel','Imóveis','Locatários','Contratos','Cobranças','Manutenções','Financeiro'].includes(page));if(page!==ltPage){ltPage=page;ltQ='';ltSt='Todos'}if(page==='Painel'){ $('#view').innerHTML=homePage(cs,fin); renderTabbar(page); return; }
  const meta={'Imóveis':['Novo imóvel','property','Sua carteira de casas, apartamentos e galpões.'],'Locatários':['Novo locatário','person','Contatos dos responsáveis pelos contratos.'],'Contratos':['Novo contrato','lease','Vigência, valor mensal e vencimento de cada locação.'],'Cobranças':['','','Acompanhe os vencimentos e registre os recebimentos.'],'Manutenções':['Agendar manutenção','job','Serviços agendados para os seus imóveis.'],'Financeiro':['Lançar despesa','expense','Entradas e saídas pela data de movimentação.'],'Mais':['','','Acesso rápido à sua gestão.']};
  let h='';
  if(page==='Painel'){
@@ -339,10 +339,9 @@ function render(){
  if(page==='Imóveis')h+=propertyList();
  if(page==='Locatários')h+=personList();
  if(page==='Contratos')h+=leaseList();
- if(page==='Cobranças')h+=monthPick()+'<label class="filters">Situação <select id="filter">'+['Todas','Em atraso','A vencer','Pago'].map(v=>'<option '+(filter===v?'selected':'')+'>'+v+'</option>').join('')+'</select></label>'+panel('Aluguéis de '+monthName(month),chargeRows(cs.filter(c=>filter==='Todas'||c.status===filter),true));
- if(page==='Manutenções')h+=panel('Agenda',db.jobs.slice().sort((a,b)=>Number(a.done)-Number(b.done)||a.date.localeCompare(b.date)).map(j=>item(j.name,pname(j.property)+' · '+date(j.date),badge(j.done?'Concluída':'Agendada'),j.done?'':btn('finish|'+j.id,'Concluir'))).join('')||empty('Nenhuma manutenção agendada.'));
- if(page==='Financeiro'){let moves=[...db.payments.map(p=>({...p,name:pname(db.leases.find(l=>l.id===p.key.split('/')[0])?.property),type:'Aluguel'})),...db.expenses.map(e=>({...e,amount:-e.amount,type:'Despesa'}))].filter(x=>x.date.startsWith(month)).sort((a,b)=>b.date.localeCompare(a.date));
- h+=monthPick()+'<div class="cards">'+card('Entradas',money(fin.income),4)+card('Saídas',money(fin.cost),6)+card('Saldo do mês',money(fin.income-fin.cost),6)+'</div>'+panel('Movimentações',moves.map(x=>item(x.name,date(x.date)+' · '+x.type,money(x.amount))).join('')||empty('Nenhuma movimentação no mês.'),btn('exportFinance','Exportar CSV'))}
+ if(page==='Cobranças')h+=chargePage(cs);
+ if(page==='Manutenções')h+=jobPage();
+ if(page==='Financeiro')h+=financePage(fin);
  }
  if(wallet==='cloud')h='<div class="row"><strong>Carteira online · '+enc(onlineName)+'</strong><div class="actions">'+btn('refresh','Atualizar')+btn('logout','Sair da conta')+'</div></div>'+h;
  $('#view').innerHTML=h;ltApply();renderTabbar(page);
@@ -471,9 +470,9 @@ document.addEventListener('click',e=>{
 // Barra das telas de cadastro: indicadores, busca e filtro por situação (Claude · design/ux-ui).
 let ltQ='',ltSt='Todos',ltPage='';
 const ltNorm=v=>String(v||'').toLowerCase().normalize('NFD').replace(/\p{M}/gu,'');
-function ltTools(kpis,chips,ph){
+function ltTools(kpis,chips,ph,extra=''){
  return '<section class="home-kpis lt-kpis" aria-label="Indicadores">'+kpis.map(([label,val,hint,mod,bar])=>'<div class="home-kpi'+(mod?' home-kpi--'+mod:'')+'"><span>'+label+'</span><strong>'+val+'</strong>'+(bar!=null?'<span class="home-kpi-bar" aria-hidden="true"><i style="width:'+bar+'%"></i></span>':'')+(hint?'<small>'+hint+'</small>':'')+'</div>').join('')+'</section>'
-  +'<div class="lt-bar"><label class="lt-search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="lt-q" placeholder="'+ph+'" aria-label="'+ph+'" value="'+enc(ltQ)+'" autocomplete="off"></label>'
+  +'<div class="lt-bar"><label class="lt-search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="lt-q" placeholder="'+ph+'" aria-label="'+ph+'" value="'+enc(ltQ)+'" autocomplete="off"></label>'+extra
   +'<div class="lt-chips" role="group" aria-label="Filtrar por situação">'+['Todos',...chips].map(c=>'<button type="button" data-lt-st="'+enc(c)+'" aria-pressed="'+(c===ltSt)+'">'+enc(c)+'</button>').join('')+'</div></div>'
   +'<p class="empty lt-none" hidden>Nada encontrado com esse filtro.</p>';
 }
@@ -484,6 +483,42 @@ function ltApply(){
 }
 document.addEventListener('input',e=>{if(e.target.id==='lt-q'){ltQ=e.target.value;ltApply()}});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-lt-st]');if(!b)return;ltSt=b.dataset.ltSt;document.querySelectorAll('[data-lt-st]').forEach(x=>x.setAttribute('aria-pressed',x===b));ltApply()});
+// Cobranças, Manutenções e Financeiro no padrão das telas largas (Claude · design/ux-ui).
+const opDays=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5);
+const opMonth=()=>'<label class="lt-month"><span>Mês</span><input id="month" aria-label="Mês de referência" type="month" min="1900-01" max="2199-12" value="'+month+'"></label>';
+const opPill=s=>'<span class="tl-st '+(s==='Pago'||s==='Concluída'?'is-ok':s==='Em atraso'||s==='Atrasada'?'is-late':'is-soon')+'">'+enc(s)+'</span>';
+const opSum=xs=>xs.reduce((n,x)=>n+x.amount,0);
+function chargePage(cs){
+ const now=today(),paid=cs.filter(c=>c.paid),late=cs.filter(c=>c.status==='Em atraso'),open=cs.filter(c=>c.status==='A vencer'),total=opSum(cs),pct=total?Math.round(opSum(paid)/total*100):0;
+ const kpis=[['A receber no mês',money(total),cs.length+' cobrança'+(cs.length===1?'':'s')],['Recebido',money(opSum(paid)),pct+'% do previsto','good',pct],['Em atraso',money(opSum(late)),late.length?late.length+' cobrança'+(late.length>1?'s':''):'nenhuma em atraso',late.length?'bad':'good'],['A vencer',money(opSum(open)),open.length?'próxima em '+date(open[0].due):'nada a vencer']];
+ if(!cs.length)return ltTools(kpis,['Em atraso','A vencer','Pago'],'Buscar por imóvel ou locatário',opMonth())+panel('Aluguéis de '+monthName(month),empty('Nenhuma cobrança neste mês.'));
+ const order={'Em atraso':0,'A vencer':1,'Pago':2};
+ return ltTools(kpis,['Em atraso','A vencer','Pago'],'Buscar por imóvel ou locatário',opMonth())+'<div class="ch-grid">'+cs.slice().sort((a,b)=>order[a.status]-order[b.status]||a.due.localeCompare(b.due)).map(c=>{
+  const ph=tfDigits(c.person?.phone),wa=ph?'https://wa.me/'+(ph.length<=11?'55':'')+ph+'?text='+encodeURIComponent('Olá, '+c.person.name+'! O aluguel de '+c.property.name+', no valor de '+money(c.amount)+', tem vencimento em '+date(c.due)+'.'):'';
+  const d=opDays(now,c.due),when=c.paid?'Recebido em '+date(c.paid.date):c.status==='Em atraso'?'Venceu em '+date(c.due)+' · '+(-d)+' dia'+(d===-1?'':'s')+' de atraso':'Vence em '+date(c.due)+(d===0?' · hoje':d===1?' · amanhã':' · em '+d+' dias');
+  return '<article class="ch-card" data-st="'+c.status+'"><div class="ch-head"><div><h2>'+enc(c.property?.name||'Imóvel')+'</h2><small>'+enc(c.person?.name||'Locatário')+'</small></div>'+opPill(c.status)+'</div>'
+   +'<div class="ch-amt"><strong>'+money(c.amount)+'</strong><span class="'+(c.status==='Em atraso'?'lf-bad':'')+'">'+when+'</span></div>'
+   +(c.paid?'':'<div class="ch-act">'+btn('pay|'+c.key,'Registrar pagamento','primary')+(wa?'<a class="button" target="_blank" rel="noopener" href="'+enc(wa)+'">WhatsApp</a>':'')+'</div>')+'</article>'}).join('')+'</div>';
+}
+function jobPage(){
+ const now=today(),todo=db.jobs.filter(j=>!j.done),late=todo.filter(j=>j.date<now),doneM=db.jobs.filter(j=>j.done&&(j.completed||j.date).startsWith(current())),next=todo.filter(j=>j.date>=now).sort((a,b)=>a.date.localeCompare(b.date))[0];
+ const kpis=[['Agendadas',todo.length,todo.length?'a fazer':'nada pendente'],['Atrasadas',late.length,late.length?'data já passou':'tudo no prazo',late.length?'bad':'good'],['Concluídas no mês',doneM.length,monthName(current())],['Próxima',next?date(next.date).slice(0,5):'—',next?enc(next.name):'sem serviço agendado']];
+ if(!db.jobs.length)return ltTools(kpis,['Agendadas','Atrasadas','Concluídas'],'Buscar por serviço ou imóvel')+panel('Agenda',empty('Nenhuma manutenção agendada.'));
+ return ltTools(kpis,['Agendadas','Atrasadas','Concluídas'],'Buscar por serviço ou imóvel')+'<div class="ch-grid">'+db.jobs.slice().sort((a,b)=>Number(a.done)-Number(b.done)||(a.done?b.date.localeCompare(a.date):a.date.localeCompare(b.date))).map(j=>{
+  const d=opDays(now,j.date),st=j.done?'Concluída':j.date<now?'Atrasada':'Agendada';
+  const when=j.done?'Concluída em '+date(j.completed||j.date):d<0?'Era para '+date(j.date)+' · há '+(-d)+' dia'+(d===-1?'':'s'):date(j.date)+(d===0?' · hoje':d===1?' · amanhã':' · em '+d+' dias');
+  return '<article class="ch-card mt-card" data-st="'+(st==='Atrasada'?'Atrasadas|Agendadas':st==='Concluída'?'Concluídas':'Agendadas')+'"><div class="ch-head"><div><h2>'+enc(j.name)+'</h2><small>'+enc(pname(j.property)||'Imóvel')+'</small></div>'+opPill(st)+'</div>'
+   +'<p class="mt-when '+(st==='Atrasada'?'lf-bad':'')+'">'+when+'</p>'+(j.done?'':'<div class="ch-act">'+btn('finish|'+j.id,'Concluir serviço','primary')+'</div>')+'</article>'}).join('')+'</div>';
+}
+function financePage(fin){
+ const moves=[...db.payments.map(p=>({...p,name:pname(db.leases.find(l=>l.id===p.key.split('/')[0])?.property),type:'Aluguel'})),...db.expenses.map(e=>({...e,amount:-e.amount,type:'Despesa'}))].filter(x=>x.date.startsWith(month)).sort((a,b)=>b.date.localeCompare(a.date));
+ const cs=charges(db,month),pend=opSum(cs.filter(c=>!c.paid)),bal=fin.income-fin.cost,prev=cash(db,shift(month,-1)),pb=prev.income-prev.cost;
+ const kpis=[['Entradas',money(fin.income),'aluguéis recebidos','good'],['Saídas',money(fin.cost),'despesas e manutenções'],['Saldo do mês',money(bal),prev.income||prev.cost?(bal>=pb?'▲ ':'▼ ')+money(Math.abs(bal-pb))+' vs. mês anterior':'sem mês anterior',bal<0?'bad':''],['Ainda a receber',money(pend),pend?'cobranças em aberto no mês':'tudo recebido',pend?'':'good']];
+ const rows=moves.map(x=>'<div class="item fin-row" data-st="'+(x.amount<0?'Saídas':'Entradas')+'"><div><h3>'+enc(x.name||x.type)+'</h3><small>'+date(x.date)+' · '+x.type+'</small></div><div class="right"><strong class="num '+(x.amount<0?'fin-out':'fin-in')+'">'+(x.amount<0?'− ':'+ ')+money(Math.abs(x.amount))+'</strong></div></div>').join('');
+ return ltTools(kpis,['Entradas','Saídas'],'Buscar movimentação',opMonth())
+  +'<div class="fin-grid">'+panel('Movimentações de '+monthName(month),rows||empty('Nenhuma movimentação no mês.'),btn('exportFinance','Exportar CSV'))
+  +panel('Últimos 6 meses',chart())+'</div>';
+}
 function propertyList(){
  if(!db.properties.length)return panel('Seus imóveis',empty('Cadastre o primeiro imóvel para começar.'));
  const now=today(),plural=(n,a,b)=>n+' '+(n===1?a:b),act=p=>db.leases.find(l=>l.property===p.id&&l.start<=now&&l.end>=now);
