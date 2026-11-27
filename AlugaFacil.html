@@ -451,6 +451,118 @@ dialog #close{min-width:44px;min-height:44px}
  .home-kpi strong{font-size:26px}
  .home-chart{height:200px}
 }
+
+/* Cadastro de imóvel em etapas (Claude · design/ux-ui) */
+dialog.dlg-wide{width:min(640px,100vw);max-height:min(860px,94vh);padding:0;font:var(--af-corpo);color:var(--af-tinta);background:var(--af-branco)}
+dialog.dlg-wide #form{display:flex;flex-direction:column;min-height:100%}
+dialog.dlg-wide #form>.row{position:sticky;top:0;z-index:3;background:var(--af-branco);padding:14px 16px 8px 24px;height:66px}
+dialog.dlg-wide #formTitle{font:var(--af-h1-sub);color:var(--af-tinta)}
+dialog.dlg-wide #fields{display:flex;flex-direction:column;flex:1;margin:0;padding:0 24px}
+dialog.dlg-wide #error{margin:0;padding:0 24px 8px}
+dialog.dlg-wide #error:empty{display:none}
+.pf-steps{list-style:none;margin:0 -24px;padding:4px 24px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;position:sticky;top:66px;z-index:2;background:var(--af-branco);border-bottom:1px solid var(--af-divisor)}
+.pf-steps button{all:unset;box-sizing:border-box;width:100%;min-height:44px;display:flex;align-items:center;gap:8px;cursor:pointer;font:600 13px/1.2 var(--af-font-texto);color:var(--af-texto-2);border-radius:10px;padding:4px 6px}
+.pf-steps button:focus-visible{outline:2px solid var(--af-verde);outline-offset:2px}
+.pf-steps button:disabled{cursor:default}
+.pf-steps b{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--af-trilho);color:var(--af-texto-3);font-size:13px}
+.pf-steps [aria-current=step]{color:var(--af-tinta)}
+.pf-steps [aria-current=step] b{background:var(--af-verde);color:#fff}
+.pf-steps .is-done b{background:var(--af-verde-claro);color:var(--af-verde-texto);font-size:0}
+.pf-steps .is-done b::after{content:"✓" / "";font-size:14px}
+.pf-step{border:0;margin:0;padding:20px 0 8px;display:grid;gap:18px;min-width:0}
+.pf-step[hidden]{display:none}
+.pf-step legend{font:var(--af-h2);color:var(--af-tinta);padding:0;margin:0 0 2px;float:left;width:100%}
+.pf-field{display:grid;gap:6px;font:var(--af-corpo);font-weight:400;min-width:0;margin:0}
+.pf-field>span:first-child{font:600 14px/1.3 var(--af-font-texto);color:var(--af-tinta)}
+.pf-field em{font-style:normal;font-weight:400;color:var(--af-texto-2)}
+.pf-field small{font:var(--af-pequeno);color:var(--af-texto-2)}
+.pf-field input,.pf-field select,.pf-mini input{width:100%;margin:0;min-height:48px;padding:10px 14px;border:1px solid var(--af-borda-campo);border-radius:var(--af-raio-campo);font:var(--af-corpo);color:var(--af-tinta);background:var(--af-branco)}
+.pf-field input:focus-visible,.pf-field select:focus-visible,.pf-mini input:focus-visible{outline:2px solid var(--af-verde);outline-offset:1px;border-color:var(--af-verde)}
+.pf-field input:disabled{background:var(--af-areia);color:var(--af-texto-2)}
+.pf-chips{display:flex;flex-wrap:wrap;gap:8px}
+.pf-chip{position:relative;font-weight:400;margin:0}
+.pf-chip input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.pf-chip span{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid var(--af-borda-suave);border-radius:999px;font:500 14px/1 var(--af-font-texto);color:var(--af-texto-3);background:var(--af-branco)}
+.pf-chip input:checked+span{background:var(--af-verde-claro);border-color:var(--af-verde);color:var(--af-verde-texto);font-weight:600}
+.pf-chip input:checked+span::before{content:"✓" / "";margin-right:6px}
+.pf-chip input:focus-visible+span{outline:2px solid var(--af-verde);outline-offset:2px}
+.pf-grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.pf-mini{display:grid;gap:4px;font-weight:400;margin:0}
+.pf-mini small{font:500 13px/1.3 var(--af-font-texto);color:var(--af-texto-2)}
+.pf-checks{display:flex;flex-wrap:wrap;gap:4px 20px;margin-top:2px}
+.pf-checks label,.pf-sn{display:flex;align-items:center;gap:8px;min-height:44px;font:var(--af-corpo);cursor:pointer;margin:0}
+.pf-checks input,.pf-sn input{width:20px;height:20px;margin:0;accent-color:var(--af-verde)}
+.pf-row{display:grid;gap:12px;align-items:start}
+.pf-cep{grid-template-columns:minmax(0,220px) auto;justify-content:start}
+.pf-link{margin-top:26px;min-height:48px;display:inline-flex;align-items:center;font:600 14px/1 var(--af-font-texto);color:var(--af-verde-texto)}
+#pf-cep-msg.is-ok{color:var(--af-pago-txt)}
+#pf-cep-msg.is-ok::before{content:"✓ " / ""}
+#pf-cep-msg.is-bad{color:var(--af-atraso-txt)}
+#pf-cep-msg.is-bad::before{content:"! "}
+.pf-num{grid-template-columns:minmax(0,180px) auto;justify-content:start}
+.pf-sn{margin-top:28px}
+.pf-city{grid-template-columns:minmax(0,1fr) 104px}
+.pf-two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pf-money{position:relative;display:block}
+.pf-money i{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--af-texto-2);pointer-events:none}
+.pf-field .pf-money input{padding-left:42px;font-variant-numeric:tabular-nums}
+.pf-photo{position:relative}
+.pf-sr{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.pf-photo-add{display:grid;justify-items:center;gap:4px;margin:0;padding:22px 16px;border:1.5px dashed var(--af-borda-campo);border-radius:var(--af-raio-cartao);background:var(--af-areia);color:var(--af-verde-texto);cursor:pointer;text-align:center;font-weight:400}
+.pf-photo-add b{font:600 15px/1.3 var(--af-font-texto)}
+.pf-photo-add small{font:var(--af-pequeno);color:var(--af-texto-2)}
+.pf-sr:focus-visible~.pf-photo-add{outline:2px solid var(--af-verde);outline-offset:2px}
+.pf-photo.has-photo .pf-photo-add{display:none}
+.pf-photo-prev{display:grid;grid-template-columns:160px 1fr;gap:14px;align-items:center}
+.pf-photo-prev img{width:160px;aspect-ratio:4/3;object-fit:cover;border-radius:12px;display:block}
+.pf-photo-prev div{display:flex;flex-wrap:wrap;gap:8px}
+.pf-photo-btn{display:inline-flex;align-items:center;margin:0;min-height:44px;padding:0 16px;border:1px solid var(--af-borda-suave);border-radius:12px;background:var(--af-branco);font:600 14px/1 var(--af-font-texto);color:var(--af-tinta);cursor:pointer}
+.pf-total{display:grid;gap:2px;padding:16px;border-radius:var(--af-raio-cartao);background:var(--af-verde-claro)}
+.pf-total span{font:600 14px/1.3 var(--af-font-texto);color:var(--af-verde-texto)}
+.pf-total strong{font:var(--af-valor);color:var(--af-tinta);font-variant-numeric:tabular-nums}
+.pf-total small{font:var(--af-pequeno);color:var(--af-texto-3)}
+.pf-note{margin:0;padding:12px 14px;border-radius:12px;background:var(--af-aviso-bg);color:var(--af-aviso-txt);font:var(--af-pequeno)}
+.pf-foot{position:sticky;bottom:0;z-index:2;display:flex;gap:10px;margin:auto -24px 0;padding:14px 24px calc(14px + env(safe-area-inset-bottom));background:var(--af-branco);border-top:1px solid var(--af-divisor)}
+.pf-foot button{min-height:52px;border-radius:var(--af-raio-botao-grande);font:600 16px/1 var(--af-font-texto);padding:0 22px}
+.pf-foot .pf-next{flex:1;background:var(--af-verde);border-color:var(--af-verde);color:#fff}
+.pf-back{background:var(--af-branco);border:1px solid var(--af-borda-suave);color:var(--af-tinta)}
+.pf-back[hidden]{display:none}
+@media (max-width:599px){
+ dialog.dlg-wide{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border-radius:0}
+ dialog.dlg-wide #form>.row{padding:8px 6px 4px 16px;height:58px}
+ dialog.dlg-wide #fields{padding:0 16px}
+ dialog.dlg-wide #error{padding:0 16px 8px}
+ .pf-steps{margin:0 -16px;padding:4px 12px 10px;top:58px;gap:4px}
+ .pf-steps button{flex-direction:column;justify-content:center;gap:4px;font-size:12px;text-align:center}
+ .pf-foot{margin:auto -16px 0;padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+ .pf-grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pf-two{grid-template-columns:minmax(0,1fr)}
+ .pf-cep{grid-template-columns:minmax(0,1fr) auto}
+ .pf-photo-prev{grid-template-columns:1fr}
+ .pf-photo-prev img{width:100%}
+}
+/* Lista de imóveis em cartões */
+.pl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:8px}
+.pl-card{background:var(--af-branco);border:1px solid var(--af-borda-suave);border-radius:var(--af-raio-cartao);overflow:hidden;display:flex;flex-direction:column}
+.pl-media{position:relative;aspect-ratio:16/9;background:var(--af-areia);display:grid;place-items:center}
+.pl-media img{width:100%;height:100%;object-fit:cover;display:block}
+.pl-ph{color:var(--af-borda-campo)}
+.pl-media:has(.pl-ph){aspect-ratio:auto;height:96px}
+.pl-ph svg.icon{width:44px;height:44px;stroke-width:1.4}
+.pl-status{position:absolute;top:10px;left:10px;padding:5px 10px;border-radius:999px;font:600 12px/1 var(--af-font-texto)}
+.pl-status.is-busy{background:var(--af-pago-bg);color:var(--af-pago-txt)}
+.pl-status.is-busy::before{content:"● "}
+.pl-status.is-free{background:var(--af-aviso-bg);color:var(--af-aviso-txt)}
+.pl-status.is-free::before{content:"○ "}
+.pl-body{padding:14px 16px 16px;display:grid;gap:4px}
+.pl-body h3{font:var(--af-h2);color:var(--af-tinta)}
+.pl-body p{margin:0;font:var(--af-pequeno);color:var(--af-texto-2)}
+.pl-body>small{font:var(--af-pequeno);color:var(--af-texto-3)}
+.pl-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}
+.pl-type{font:500 12px/1 var(--af-font-texto);padding:5px 10px;border-radius:999px;background:var(--af-avencer-bg);color:var(--af-avencer-txt)}
+.pl-foot strong{font:var(--af-valor);font-size:18px;color:var(--af-tinta);font-variant-numeric:tabular-nums}
+.pl-foot strong small{font:var(--af-pequeno);color:var(--af-texto-2);margin-left:2px}
+.pl-who{font:var(--af-pequeno);color:var(--af-texto-2)}
 </style>
   <link rel="icon" href="/favicon.ico" sizes="32x32">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -493,7 +605,8 @@ function demo(){
  const places=[['Residencial Aurora · 204','Apartamento','Av. das Palmeiras, 120',185000],['Casa Jardim das Flores','Casa','Rua das Flores, 42',240000],['Galpão Horizonte','Galpão','Rua Industrial, 610',360000],['Edifício Atlântico · 301','Apartamento','Av. Beira-Mar, 85',210000]];
  const people=['Ana Martins','Carlos Almeida','Marina Costa','Rafael Lima'];
  places.forEach(([name,type,address,amount],i)=>{
- db.properties.push({id:'im'+i,name,type,address});db.people.push({id:'pe'+i,name:people[i],phone:''});
+ const x=[{purpose:'Residencial',area:68,bedrooms:2,bathrooms:1,parking:1,district:'Centro'},{purpose:'Residencial',area:120,bedrooms:3,bathrooms:2,parking:2,district:'Jardim das Flores'},{purpose:'Comercial',area:850,bathrooms:2,parking:4,district:'Distrito Industrial'},{purpose:'Residencial',area:74,bedrooms:2,bathrooms:2,parking:1,furnished:true,district:'Beira-Mar'}][i];
+ db.properties.push({id:'im'+i,name,type,address:address+' – '+x.district+', Cidade Exemplo/SP',rent:amount,...x});db.people.push({id:'pe'+i,name:people[i],phone:''});
  db.leases.push({id:'ct'+i,property:'im'+i,person:'pe'+i,start:shift(m,-5)+'-01',end:shift(m,6)+'-28',amount,day:[5,10,20,28][i]});
  for(let n=-5;n<=0;n++){const period=shift(m,n),date=period+'-'+String([5,10,20,28][i]).padStart(2,'0');if(n<0||i===0&&date<=today())db.payments.push({key:'ct'+i+'/'+period,date,amount})}
  });
@@ -839,7 +952,7 @@ function render(){
    h='<div class="sectionhead"><h1>Mais</h1><p class="sub">Acesso rápido à sua gestão.</p></div><section class="more-wallet"><img src="/icone-app.svg" alt=""><div><small>Carteira em uso</small><strong>'+activeWallet+'</strong></div>'+btn('wallet','Trocar')+'</section><section class="more-group"><h2>Gestão</h2><div class="more-list">'+['Contratos|'+db.leases.length+' vigentes','Locatários|'+db.people.length+' contatos','Manutenções|'+db.jobs.filter(j=>!j.done).length+' agendadas'].map(x=>{const [p,n]=x.split('|');return '<a href="#'+p+'"><span class="more-icon">'+icon(p==='Contratos'?3:p==='Locatários'?2:5)+'</span><span><b>'+p+'</b><small>'+n+'</small></span><strong>›</strong></a>'}).join('')+'</div></section>'+(wallet==='cloud'?'<section class="more-group"><h2>Conta</h2><div class="more-list"><button class="more-exit" data-act="logout">Sair da conta</button></div></section>':'');
  }else{
  const [label,act,sub]=meta[page];h='<div class="row sectionhead"><div><h1>'+page+'</h1><p class="sub">'+sub+'</p></div>'+(act?btn(act,'＋ '+label,'primary'):'')+'</div>';
- if(page==='Imóveis')h+=panel('Imóveis cadastrados',db.properties.map(p=>item(p.name,p.address,badge(p.type),db.leases.some(l=>l.property===p.id&&l.start<=today()&&l.end>=today())?'Ocupado':'Disponível')).join('')||empty('Cadastre o primeiro imóvel para começar.'));
+ if(page==='Imóveis')h+=propertyList();
  if(page==='Locatários')h+=panel('Contatos',db.people.map(p=>item(p.name,p.phone||'Sem telefone')).join('')||empty('Cadastre um locatário para vinculá-lo ao imóvel.'));
  if(page==='Contratos')h+=panel('Locações',db.leases.map(l=>item(pname(l.property),person(l.person)+' · '+date(l.start)+' a '+date(l.end),money(l.amount),'Vencimento no dia '+l.day)).join('')||empty('O contrato vincula um imóvel a um locatário e gera as cobranças mensais.'));
  if(page==='Cobranças')h+=monthPick()+'<label class="filters">Situação <select id="filter">'+['Todas','Em atraso','A vencer','Pago'].map(v=>'<option '+(filter===v?'selected':'')+'>'+v+'</option>').join('')+'</select></label>'+panel('Aluguéis de '+monthName(month),chargeRows(cs.filter(c=>filter==='Todas'||c.status===filter),true));
@@ -853,6 +966,141 @@ function render(){
 const input=(label,name,type='text',attrs='')=>'<label>'+label+'<input required name="'+name+'" type="'+type+'" '+attrs+'></label>';
 const select=(label,name,items)=>'<label>'+label+'<select required name="'+name+'"><option value="">Selecione</option>'+items.map(x=>'<option value="'+enc(x.id)+'">'+enc(x.name)+'</option>').join('')+'</select></label>';
 const amount=()=>input('Valor (R$)','amount','number','min=".01" max="999999999" step=".01"');
+// Cadastro de imóvel em 3 etapas: identificação, localização e valores (Claude · design/ux-ui).
+const pfTypes=['Apartamento','Casa','Sala comercial','Loja','Galpão','Terreno','Outro'],pfBusiness=['Sala comercial','Loja','Galpão'];
+const pfUF='AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
+const pfSteps=['Identificação','Localização','Valores'];
+let pfStep=0,pfSeen=0;
+const pfChips=(name,items,val,req,label)=>'<div class="pf-chips" role="radiogroup" aria-label="'+label+'">'+items.map((v,i)=>'<label class="pf-chip"><input type="radio" name="'+name+'" value="'+enc(v)+'"'+(v===val?' checked':'')+(req&&!i?' required':'')+'><span>'+enc(v)+'</span></label>').join('')+'</div>';
+const pfField=(label,name,attrs='',hint='',cls='')=>'<label class="pf-field '+cls+'"><span>'+label+'</span><input name="'+name+'" '+attrs+'>'+(hint?'<small>'+hint+'</small>':'')+'</label>';
+const pfMoney=(label,name,req,hint='')=>'<label class="pf-field"><span>'+label+'</span><span class="pf-money"><i aria-hidden="true">R$</i><input name="'+name+'" type="number" inputmode="decimal" step=".01" min="0" max="999999999"'+(req?' required min=".01"':'')+' placeholder="0,00"></span>'+(hint?'<small>'+hint+'</small>':'')+'</label>';
+const pfOpt=' <em>(opcional)</em>';
+function propertyForm(){
+ pfStep=0;pfSeen=0;
+ const steps='<ol class="pf-steps">'+pfSteps.map((s,i)=>'<li><button type="button" data-pf-go="'+i+'"'+(i?' disabled':'')+' aria-current="'+(i?'false':'step')+'"><b>'+(i+1)+'</b><span>'+s+'</span></button></li>').join('')+'</ol>';
+ const id='<fieldset class="pf-step" data-step="0"><legend>Identificação do imóvel</legend>'
+  +pfField('Nome do imóvel','name','required maxlength="80" autocomplete="off" placeholder="Ex.: Apto 204 · Residencial Aurora"','Como você chama este imóvel no dia a dia.')
+  +'<div class="pf-field"><span id="pf-type-l">Tipo</span>'+pfChips('type',pfTypes,'',true,'Tipo')+'</div>'
+  +'<div class="pf-field"><span>Finalidade</span>'+pfChips('purpose',['Residencial','Comercial'],'Residencial',false,'Finalidade')+'</div>'
+  +'<div class="pf-field"><span>Características'+pfOpt+'</span><div class="pf-grid4">'
+  +[['Área (m²)','area','step=".01"'],['Quartos','bedrooms',''],['Banheiros','bathrooms',''],['Vagas','parking','']].map(([l,n,a])=>'<label class="pf-mini"><small>'+l+'</small><input name="'+n+'" type="number" inputmode="numeric" min="0" max="99999" '+a+'></label>').join('')
+  +'</div><div class="pf-checks"><label><input type="checkbox" name="furnished" value="1"> Mobiliado</label><label><input type="checkbox" name="pets" value="1"> Aceita animais</label></div></div>'
+  +'<div class="pf-field"><span>Foto da fachada'+pfOpt+'</span><div class="pf-photo" id="pf-photo"><input type="file" id="pf-file" accept="image/*" class="pf-sr"><input type="hidden" name="photo"><label for="pf-file" class="pf-photo-add"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg><b>Adicionar foto</b><small>Tire agora ou escolha da galeria</small></label></div></div>'
+  +pfField('Matrícula ou inscrição do IPTU'+pfOpt,'registry','maxlength="40" autocomplete="off"','Ajuda a achar o imóvel em documentos e boletos.')
+  +'</fieldset>';
+ const loc='<fieldset class="pf-step" data-step="1" hidden><legend>Localização do imóvel</legend>'
+  +'<div class="pf-row pf-cep">'+pfField('CEP','cep','required inputmode="numeric" autocomplete="postal-code" maxlength="9" pattern="\\d{5}-?\\d{3}" placeholder="00000-000"','<span id="pf-cep-msg" role="status">Digite o CEP para preencher o endereço.</span>')
+  +'<a class="pf-link" href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener">Não sei o CEP</a></div>'
+  +pfField('Rua ou avenida','street','required maxlength="120" autocomplete="address-line1"')
+  +'<div class="pf-row pf-num">'+pfField('Número','number','required maxlength="10" inputmode="numeric" autocomplete="off"')
+  +'<label class="pf-sn"><input type="checkbox" name="noNumber" value="1"> Sem número</label></div>'
+  +pfField('Complemento'+pfOpt,'complement','maxlength="60" placeholder="Apto, bloco, sala, fundos"')
+  +pfField('Bairro','district','required maxlength="80"')
+  +'<div class="pf-row pf-city">'+pfField('Cidade','city','required maxlength="80" autocomplete="address-level2"')
+  +'<label class="pf-field pf-uf"><span>UF</span><select name="uf" required><option value="">—</option>'+pfUF.map(u=>'<option>'+u+'</option>').join('')+'</select></label></div>'
+  +pfField('Ponto de referência'+pfOpt,'reference','maxlength="100"','Útil para prestadores de manutenção.')
+  +'</fieldset>';
+ const val='<fieldset class="pf-step" data-step="2" hidden><legend>Valores do imóvel</legend>'
+  +pfMoney('Aluguel pretendido por mês','rent',true,'Serve de sugestão ao criar o contrato.')
+  +'<div class="pf-row pf-two">'+pfMoney('Condomínio por mês'+pfOpt,'condo')+pfMoney('IPTU por ano'+pfOpt,'iptu',false,'<span id="pf-iptu-m"></span>')+'</div>'
+  +'<div class="pf-field"><span>Quem paga condomínio e IPTU</span>'+pfChips('payer',['Locatário','Locador'],'Locatário',false,'Quem paga condomínio e IPTU')+'</div>'
+  +'<div class="pf-total" aria-live="polite"><span>Total mensal para o locatário</span><strong id="pf-total">R$ 0,00</strong><small id="pf-total-d">Aluguel</small></div>'
+  +(wallet==='cloud'?'<p class="pf-note">Na carteira online, por enquanto ficam salvos o nome, o tipo e o endereço. Foto, características e valores ficam para a próxima atualização do banco.</p>':'')
+  +'</fieldset>';
+ return steps+id+loc+val+'<div class="pf-foot"><button type="button" class="pf-back" data-pf-back hidden>Voltar</button><button class="primary pf-next">Continuar</button></div>';
+}
+const pfEl=()=>$('#form');
+function pfGo(n){
+ pfStep=n;pfSeen=Math.max(pfSeen,n);
+ pfEl().querySelectorAll('.pf-step').forEach(s=>s.hidden=+s.dataset.step!==n);
+ pfEl().querySelectorAll('[data-pf-go]').forEach(b=>{const i=+b.dataset.pfGo;b.disabled=i>pfSeen;b.setAttribute('aria-current',i===n?'step':'false');b.parentNode.classList.toggle('is-done',i<n)});
+ pfEl().querySelector('[data-pf-back]').hidden=!n;pfEl().querySelector('.pf-next').textContent=n===2?'Salvar imóvel':'Continuar';
+ $('#error').textContent='';$('dialog').scrollTop=0;
+ pfEl().querySelector('.pf-step:not([hidden]) input:not([type=hidden]):not([type=file]):not([type=checkbox])')?.focus({preventScroll:true});
+}
+function pfCheck(n){
+ const step=pfEl().querySelector('.pf-step[data-step="'+n+'"]');
+ for(const el of step.querySelectorAll('input,select')){
+  if(el.type==='text')el.value=el.value.trim();
+  if(!el.checkValidity()){if(pfStep!==n)pfGo(n);el.reportValidity();if(el.type!=='radio')el.focus();return false}
+ }
+ return true;
+}
+const pfCents=v=>Math.round((Number(v)||0)*100);
+function pfTotals(){
+ const f=pfEl();if(!f.querySelector('#pf-total'))return;
+ const E=f.elements,rent=pfCents(E.rent.value),condo=pfCents(E.condo.value),iptu=Math.round(pfCents(E.iptu.value)/12),tenant=f.querySelector('[name=payer]:checked')?.value!=='Locador';
+ $('#pf-iptu-m').textContent=iptu?'≈ '+money(iptu)+' por mês':'';
+ const parts=[['Aluguel',rent],...(tenant?[['condomínio',condo],['IPTU',iptu]]:[])].filter(([,v],i)=>!i||v);
+ $('#pf-total').textContent=money(parts.reduce((n,[,v])=>n+v,0));
+ $('#pf-total-d').textContent=parts.map(([l])=>l).join(' + ')+(!tenant&&(condo||iptu)?' · condomínio e IPTU por conta do locador':'');
+}
+// Busca do endereço pelo CEP (ViaCEP, com BrasilAPI de reserva). Só preenche campos vazios ou que vieram da busca anterior.
+let pfCepSeq=0;
+async function pfCep(raw){
+ const cep=raw.replace(/\D/g,''),msg=$('#pf-cep-msg'),f=pfEl();if(cep.length!==8)return;
+ const seq=++pfCepSeq;msg.textContent='Buscando endereço…';msg.className='';
+ let a=null;
+ try{const r=await fetch('https://viacep.com.br/ws/'+cep+'/json/');const j=await r.json();if(r.ok&&!j.erro)a={street:j.logradouro,district:j.bairro,city:j.localidade,uf:j.uf}}catch{}
+ if(!a)try{const r=await fetch('https://brasilapi.com.br/api/cep/v1/'+cep);if(r.ok){const j=await r.json();a={street:j.street,district:j.neighborhood,city:j.city,uf:j.state}}}catch{}
+ if(seq!==pfCepSeq||!f.elements.cep)return;
+ if(!a){msg.textContent='Não encontramos esse CEP. Confira os números ou preencha o endereço abaixo.';msg.className='is-bad';return}
+ for(const k of ['street','district','city','uf']){const el=f.elements[k];if(a[k]&&(!el.value||el.dataset.auto)){el.value=a[k];el.dataset.auto='1'}}
+ msg.textContent=a.street?'Endereço encontrado. Confira e informe o número.':'CEP da cidade inteira: informe rua e bairro.';msg.className='is-ok';
+ (a.street?(f.elements.noNumber.checked?f.elements.complement:f.elements.number):f.elements.street).focus();
+}
+async function pfPhoto(file){
+ const box=$('#pf-photo');if(!file)return;
+ if(!file.type.startsWith('image/')){toast('Escolha um arquivo de imagem.');return}
+ try{
+  const img=await createImageBitmap(file),max=960,s=Math.min(1,max/Math.max(img.width,img.height));
+  const c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+  let url=c.toDataURL('image/webp',.72);if(!url.startsWith('data:image/webp'))url=c.toDataURL('image/jpeg',.72);
+  pfEl().elements.photo.value=url;box.classList.add('has-photo');
+  box.querySelector('.pf-photo-prev')?.remove();
+  box.insertAdjacentHTML('beforeend','<div class="pf-photo-prev"><img src="'+url+'" alt="Foto da fachada escolhida"><div><label for="pf-file" class="pf-photo-btn">Trocar foto</label><button type="button" class="pf-photo-btn" data-pf-rm>Remover</button></div></div>');
+ }catch{toast('Não foi possível ler esta imagem. Tente outra foto.')}
+}
+function pfData(f){
+ const g=n=>(f.get(n)||'').toString().trim(),num=n=>g(n)===''?null:Number(g(n));
+ const noNumber=!!f.get('noNumber'),number=noNumber?'S/N':g('number'),cep=g('cep').replace(/\D/g,'');
+ const street=[g('street'),number].filter(Boolean).join(', ')+(g('complement')?' · '+g('complement'):'');
+ return {name:g('name'),type:g('type'),purpose:g('purpose')||'Residencial',area:num('area'),bedrooms:num('bedrooms'),bathrooms:num('bathrooms'),parking:num('parking'),furnished:!!f.get('furnished'),pets:!!f.get('pets'),registry:g('registry'),photo:g('photo'),
+  cep:cep.slice(0,5)+'-'+cep.slice(5),street:g('street'),number,noNumber,complement:g('complement'),district:g('district'),city:g('city'),uf:g('uf'),reference:g('reference'),
+  address:street+' – '+g('district')+', '+g('city')+'/'+g('uf'),
+  rent:pfCents(g('rent')),condo:pfCents(g('condo')),iptu:pfCents(g('iptu')),payer:g('payer')||'Locatário'};
+}
+document.addEventListener('input',e=>{
+ const t=e.target;if(!t.closest?.('.pf-step'))return;
+ if(t.name==='cep'){const d=t.value.replace(/\D/g,'').slice(0,8);t.value=d.length>5?d.slice(0,5)+'-'+d.slice(5):d;if(d.length===8)pfCep(d);else{$('#pf-cep-msg').textContent='Digite o CEP para preencher o endereço.';$('#pf-cep-msg').className=''}}
+ if(['street','district','city'].includes(t.name))delete t.dataset.auto;
+ if(['rent','condo','iptu'].includes(t.name))pfTotals();
+});
+document.addEventListener('change',e=>{
+ const t=e.target;
+ if(action==='lease'&&t.name==='property'){const p=db.properties.find(x=>x.id===t.value),am=$('#form [name=amount]');if(p?.rent&&am&&!am.value)am.value=(p.rent/100).toFixed(2)}
+ if(!t.closest?.('.pf-step'))return;
+ if(t.id==='pf-file'){pfPhoto(t.files[0]);t.value=''}
+ if(t.name==='type'){const p=pfEl().querySelector('[name=purpose][value="'+(pfBusiness.includes(t.value)?'Comercial':'Residencial')+'"]');if(p)p.checked=true}
+ if(t.name==='noNumber'){const n=pfEl().elements.number;n.disabled=t.checked;n.required=!t.checked;if(t.checked)n.value='';else n.focus()}
+ if(t.name==='payer')pfTotals();
+ if(t.name==='uf')delete t.dataset.auto;
+});
+document.addEventListener('click',e=>{
+ const go=e.target.closest('[data-pf-go]'),back=e.target.closest('[data-pf-back]'),rm=e.target.closest('[data-pf-rm]');
+ if(go){const n=+go.dataset.pfGo;for(let i=pfStep;i<n;i++)if(!pfCheck(i))return;pfGo(n)}
+ if(back)pfGo(pfStep-1);
+ if(rm){pfEl().elements.photo.value='';$('#pf-photo').classList.remove('has-photo');$('#pf-photo .pf-photo-prev')?.remove();$('#pf-photo .pf-photo-add').focus()}
+});
+function propertyList(){
+ if(!db.properties.length)return panel('Seus imóveis',empty('Cadastre o primeiro imóvel para começar.'));
+ const now=today(),plural=(n,a,b)=>n+' '+(n===1?a:b);
+ return '<div class="pl-grid">'+db.properties.map(p=>{
+  const l=db.leases.find(l=>l.property===p.id&&l.start<=now&&l.end>=now),who=l&&db.people.find(x=>x.id===l.person)?.name;
+  const feats=[p.area?String(p.area).replace('.',',')+' m²':'',p.bedrooms?plural(p.bedrooms,'quarto','quartos'):'',p.bathrooms?plural(p.bathrooms,'banheiro','banheiros'):'',p.parking?plural(p.parking,'vaga','vagas'):'',p.furnished?'mobiliado':''].filter(Boolean).join(' · ');
+  const value=l?l.amount:p.rent;
+  return '<article class="pl-card"><div class="pl-media">'+(p.photo?'<img src="'+enc(p.photo)+'" alt="Fachada de '+enc(p.name)+'" loading="lazy">':'<span class="pl-ph" aria-hidden="true">'+icon(1)+'</span>')+'<span class="pl-status '+(l?'is-busy':'is-free')+'">'+(l?'Alugado':'Disponível')+'</span></div><div class="pl-body"><h3>'+enc(p.name)+'</h3><p>'+enc(p.address)+'</p>'+(feats?'<small>'+enc(feats)+'</small>':'')+'<div class="pl-foot"><span class="pl-type">'+enc(p.type)+'</span>'+(value?'<strong>'+money(value)+'<small>/mês</small></strong>':'')+'</div>'+(who?'<small class="pl-who">Locatário: '+enc(who)+'</small>':'')+'</div></article>'}).join('')+'</div>';
+}
 function open(act){action=act;const [type,id]=act.split('|');let title,fields;
  if(type==='demoEntry'){entry='app';wallet='demo';read();render();return}
  if(type==='logout'){if($('dialog').open)$('dialog').close();remember(null);tenants=[];walletChange('demo');toast('Sessão encerrada neste navegador.');return}
@@ -863,14 +1111,14 @@ function open(act){action=act;const [type,id]=act.split('|');let title,fields;
  }
  if(type==='chooseTenant'){showTenants().catch(err=>toast(err.message));return}
  if(type==='wallet'){title='Escolher carteira';fields=select('Carteira','wallet',[{id:'cloud',name:'Carteira online (Supabase)'},{id:'real',name:'Minha carteira local'},{id:'demo',name:'Demonstração'}])+'<small>Use a carteira online para acessar seus dados em outros dispositivos.</small>'}
- if(type==='property'){title='Novo imóvel';fields=input('Nome do imóvel','name')+select('Tipo','type',['Apartamento','Casa','Galpão','Sala comercial','Outro'].map(name=>({name,id:name})))+input('Endereço','address')}
+ if(type==='property'){title='Novo imóvel';fields=propertyForm()}
  if(type==='person'){title='Novo locatário';fields=input('Nome completo','name')+'<label>WhatsApp com DDD (opcional)<input type="tel" name="phone" pattern="[+0-9() .-]{10,22}"></label>'}
  if(type==='lease'){if(!db.people.length||!db.properties.length)return toast('Cadastre pelo menos um imóvel e um locatário.');title='Novo contrato';fields=(wallet==='cloud'?select('Imóvel e unidade','unit',db.units.filter(u=>u.status==='available').map(u=>({id:u.id,name:pname(u.property_id)+' · '+u.name}))):select('Imóvel','property',db.properties))+select('Locatário','person',db.people)+input('Início','start','date')+input('Término','end','date')+amount()+input('Dia do vencimento','day','number','min="1" max="31"')+'<small>A primeira cobrança vence no primeiro dia de vencimento dentro da vigência.</small>'}
  if(type==='expense'){title='Lançar despesa';fields=input('Descrição','name')+amount()+input('Data do pagamento','date','date','value="'+today()+'" max="'+today()+'"')}
  if(type==='job'){if(!db.properties.length)return toast('Cadastre um imóvel para agendar o serviço.');title='Agendar manutenção';fields=select('Imóvel','property',db.properties)+input('Serviço','name')+input('Data agendada','date','date')}
  if(type==='finish'){title='Concluir manutenção';fields='<p>'+enc(db.jobs.find(j=>j.id===id).name)+'</p><label>Custo pago (R$)<input required name="amount" type="number" step=".01" min="0" max="999999999" value="0"></label>'+input('Data de conclusão','date','date','max="'+today()+'" value="'+today()+'"')}
  if(type==='pay'){const c=charges(db,month).find(x=>x.key===id);if(!c||c.paid)return;title='Registrar pagamento';fields='<p>'+enc(c.person.name)+' · '+enc(c.property.name)+'<br><strong>'+money(c.amount)+'</strong></p>'+input('Data do recebimento','date','date','value="'+today()+'" max="'+today()+'"')}
- $('#formTitle').textContent=title;$('#fields').innerHTML=fields;$('#error').textContent='';$('#form .primary').hidden=type==='account'&&!!auth;$('#form .primary').textContent=type==='account'?'Entrar':'Salvar';if(!$('dialog').open)$('dialog').showModal();
+ $('#formTitle').textContent=title;$('#fields').innerHTML=fields;$('#error').textContent='';$('#form > .primary').hidden=type==='account'&&!!auth||type==='property';$('#form').noValidate=type==='property';$('dialog').classList.toggle('dlg-wide',type==='property');$('#form > .primary').textContent=type==='account'?'Entrar':'Salvar';if(!$('dialog').open)$('dialog').showModal();if(type==='property')pfGo(0);
 }
 async function showTenants(){
  tenants=await onlineTenants();
@@ -884,9 +1132,12 @@ async function activate(member){
  sessionStorage.setItem('af.activeTenant',tenantId);$('#wallet').value='cloud';$('dialog').close();render();
 }
 async function refreshOnline(){const id=tenantId;const data=await loadOnline(id);if(wallet==='cloud'&&tenantId===id){db=data;render()}}
-$('#form').onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;$('#form .primary').disabled=true;const f=Object.fromEntries(new FormData(e.target)),[type,id]=action.split('|');try{
+$('#form').onsubmit=async e=>{e.preventDefault();if(busy)return;if(action==='property'){if(pfStep<2){if(pfCheck(pfStep))pfGo(pfStep+1);return}for(let i=0;i<3;i++)if(!pfCheck(i))return}busy=true;$('#form .primary').disabled=true;const f=Object.fromEntries(new FormData(e.target)),[type,id]=action.split('|');try{
  if(type==='account'){if(!auth)await login(f.email.trim(),f.password);$('#fields').querySelector('[name=password]')?.remove();await showTenants();return}
  if(type==='tenant'){await activate(tenants.find(m=>m.tenant_id===f.tenant));return}
+ if(type==='property'){const p=pfData(new FormData(e.target));
+  if(wallet==='cloud'){await writeOnline(tenantId,type,id,p,db,month);$('dialog').close();try{await refreshOnline();toast('Imóvel salvo no Supabase.')}catch{toast('Salvo no Supabase. Clique em Atualizar para recarregar.')}return}
+  db.properties.push({...p,id:crypto.randomUUID()});save();$('dialog').close();render();toast('Imóvel cadastrado.');return}
  for(const k in f)f[k]=f[k].trim();if('name' in f&&!f.name||'address' in f&&!f.address)throw Error('Preencha os campos obrigatórios.');
  if(type==='wallet'){$('dialog').close();walletChange(f.wallet);return}
  if(f.amount!==undefined)f.amount=Math.round(Number(f.amount)*100);
@@ -902,7 +1153,7 @@ $('#form').onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;$('#fo
  if(type==='pay'){const c=charges(db,month).find(x=>x.key===id);if(!c||c.paid)throw Error('Cobrança já liquidada ou indisponível.');db.payments.push({key:id,date:f.date,amount:c.amount})}
  if(type==='finish'){const j=db.jobs.find(x=>x.id===id);if(!j||j.done)throw Error('Serviço já concluído.');j.done=true;j.completed=f.date;if(f.amount)db.expenses.push({...f,id:crypto.randomUUID(),name:j.name+' · '+pname(j.property)})}
  save();$('dialog').close();render();toast('Salvo na carteira.')
- }catch(err){read();render();$('#error').textContent=err.message}finally{busy=false;$('#form .primary').disabled=false}};
+ }catch(err){read();render();$('#error').textContent=err.name==='QuotaExceededError'?'Não há espaço no navegador para guardar a foto. Tente uma foto menor ou salve sem foto.':err.message}finally{busy=false;$('#form .primary').disabled=false}};
 function exportFinance(){const moves=[...db.payments.map(p=>({...p,name:pname(db.leases.find(l=>l.id===p.key.split('/')[0])?.property),type:'Aluguel'})),...db.expenses.map(e=>({...e,amount:-e.amount,type:'Despesa'}))].filter(x=>x.date.startsWith(month)).sort((a,b)=>a.date.localeCompare(b.date));const csv=['Data,Descrição,Tipo,Valor (centavos)',...moves.map(x=>[x.date,'"'+String(x.name||'').replaceAll('"','""')+'"',x.type,x.amount].join(','))].join('\n');const link=document.createElement('a');link.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));link.download='alugafacil-financeiro-'+month+'.csv';link.click();URL.revokeObjectURL(link.href);toast('Arquivo CSV preparado.')}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b?.dataset.act==='exportFinance')exportFinance();else if(b)open(b.dataset.act)});
 document.addEventListener('change',e=>{if(e.target.id==='month'&&/^\d{4}-\d{2}$/.test(e.target.value)){month=e.target.value;render()}if(e.target.id==='filter'){filter=e.target.value;render()}});
